@@ -33,6 +33,8 @@ When importing dependencies, always use the full package name, such
 as `from addons.sample_addon.config import __addon_name__`.
 Avoid relative imports, such as `from .config import __addon_name__`.
 
+This project depends on the `addons` folder; do not rename this folder.
+
 ## Usage
 
 1. Clone this repository.
@@ -81,6 +83,8 @@ https://github.com/nutti/fake-bpy-module
 每个插件在符合Blender插件的结构基础上，需要有一个config.py文件用于配置插件的包名，避免与其他插件冲突。
 在导入依赖时需要书写完整包名，比如 `from addons.sample_addon.config import __addon_name__`
 避免使用相对路径导入，比如 `from .config import __addon_name__`
+
+注意项目依赖addons文件夹，请勿更改这个文件夹的名称。
 
 ## 使用说明
 

@@ -3,6 +3,7 @@ import os
 import re
 import shutil
 import subprocess
+from pathlib import Path
 from datetime import datetime
 from os import listdir
 from os.path import isfile, isdir
@@ -11,7 +12,7 @@ from common.io.FileManagerClient import read_utf8, write_utf8
 from common.io.FileManagerClient import search_files
 
 # The name of current active addon to be created, tested or released
-ACTIVE_ADDON = "sample_addon"
+ACTIVE_ADDON = "test_addon"
 
 # The path of the blender executable
 BLENDER_EXE_PATH = "C:/software/general/Blender/Blender3.5/blender.exe"
@@ -23,10 +24,12 @@ IGNORE_FILES = [".idea", "venv", "main.py", "release.py", "test.py", "create.py"
                 ".git", ".gitignore",
                 "README.md", ]
 
-# The default release dir
+# The default release dir. Must not within the current workspace
+# 插件发布的默认目录，不能在当前工作空间内
 DEFAULT_RELEASE_DIR = "../addon_release/"
 
-# The default test release dir
+# The default test release dir. Must not within the current workspace
+# 测试插件发布的默认目录，不能在当前工作空间内
 TEST_RELEASE_DIR = "../addon_test/"
 
 addon_namespace_pattern = re.compile("^[a-zA-Z]+[a-zA-Z0-9_]*$")
@@ -36,12 +39,15 @@ import_module_pattern = re.compile("from ([a-zA-Z0-9_.]+) import (.+)")
 
 
 def new_addon(addon_name):
-    if not bool(addon_namespace_pattern.match(addon_name)):
+    if addon_name == "sample_Addon" or not bool(addon_namespace_pattern.match(addon_name)):
         print("InValid addon_name:", addon_name, "Please name it as a python package name")
         return
     shutil.copytree("./addons/sample_addon", f"./addons/{addon_name}")
-    config = read_utf8(f"./addons/{addon_name}/config.py").replace("sample_addon", addon_name)
-    write_utf8(f"./addons/{addon_name}/config.py", config)
+
+    all_py_file = search_files(f"./addons/{addon_name}", {".py"})
+    for py_file in all_py_file:
+        content = read_utf8(py_file).replace("sample_addon", addon_name)
+        write_utf8(py_file, content)
 
 
 def test_addon(addon_name):
@@ -63,6 +69,11 @@ def get_init_file_path(addon_name):
         target_init_file), f"Addon {addon_name} not found, please make sure config.py and __init__.py is correctly set for your addon."
 
     return target_init_file
+
+
+def get_addon_original_package_name(addon_name):
+    init_path = get_init_file_path(addon_name)
+    return os.path.basename(os.path.dirname(init_path))
 
 
 def start_test(init_file, addon_name):
@@ -90,21 +101,17 @@ def start_test(init_file, addon_name):
 
 
 def release_addon(target_init_file, addon_name, with_timestamp=False, release_dir=DEFAULT_RELEASE_DIR):
-    if not release_dir.startswith("../"):
-        release_dir = "../" + release_dir
     if not bool(addon_namespace_pattern.match(addon_name)):
         print("InValid addon_name:", addon_name, "Please name it as a python package name")
         return
     content = read_utf8(target_init_file)
     write_utf8("__init__.py", content)
 
-    if not release_dir.endswith("/"):
-        release_dir += "/"
-    if not os.path.exists(release_dir):
+    if not os.path.isdir(release_dir):
         os.mkdir(release_dir)
 
     # remove the folder if already exists
-    release_folder = release_dir + addon_name
+    release_folder = os.path.join(release_dir, addon_name)
     if os.path.exists(release_folder):
         shutil.rmtree(release_folder)
     os.mkdir(release_folder)
@@ -113,12 +120,12 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
     for f in listdir("./"):
         if f not in IGNORE_FILES:
             # if file created time is not later than the timestamp
-            if isfile("./" + f):
-                shutil.copy(f, release_folder + "/" + f)
-            elif isdir("./" + f):
-                shutil.copytree("./" + f + "/", release_folder + "/" + f)
+            if isfile(f):
+                shutil.copy(f, os.path.join(release_folder, f))
+            elif isdir(f):
+                shutil.copytree(f, os.path.join(release_folder, f))
 
-    remove_unnecessary_modules(release_folder)
+    remove_unnecessary_modules(release_folder, get_addon_original_package_name(addon_name))
     enhance_import_for_py_files(release_folder)
 
     real_addon_name = "{addon_name}_{timestamp}".format(addon_name=release_folder,
@@ -129,18 +136,23 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
     # zip the addon
     zip_folder(release_folder, real_addon_name)
     released_addon_path = os.path.abspath(os.path.join(release_dir, real_addon_name) + ".zip")
+
+    os.remove("__init__.py")
     print("Add on released:", released_addon_path)
     return released_addon_path
 
 
-def remove_unnecessary_modules(release_folder):
-    add_on_entry_py = release_folder + "/" + "__init__.py"
+def remove_unnecessary_modules(release_folder, addon_original_package_name):
+    add_on_entry_py = os.path.join(release_folder, "__init__.py")
     all_py_modules = find_all_py_modules(release_folder)
 
     un_visited_py_file = []
     visited_py_file = set()
 
+    all_addon_py_files = search_files(os.path.join(release_folder, "addons", addon_original_package_name), {".py"})
     un_visited_py_file.append(add_on_entry_py)
+    un_visited_py_file.extend(all_addon_py_files)
+
     while len(un_visited_py_file) > 0:
         next_py_file = un_visited_py_file.pop()
         necessary_py_files = get_necessary_py_file_path(release_folder, next_py_file, all_py_modules)
@@ -170,24 +182,26 @@ def remove_pyc_files(release_folder: str):
 
 def get_necessary_py_file_path(root_folder: str, py_file_path: str, all_py_modules: set) -> list:
     if not py_file_path.startswith(root_folder):
-        py_file_path = root_folder + "/" + py_file_path
+        py_file_path = os.path.join(root_folder, py_file_path)
     content = read_utf8(py_file_path)
     necessary_py_files = set()
     for module_path in import_module_pattern.finditer(content):
         import_module_path = module_path.groups()[0]
         import_module_name = module_path.groups()[1]
+        print(import_module_path, import_module_name)
 
         if import_module_path in all_py_modules:
             # 3 possible related files
-            module_file_path = root_folder + "/" + import_module_path.replace(".", "/") + ".py"
+            module_file_path = os.path.join(root_folder, import_module_path.replace(".", os.path.sep) + ".py")
 
             if os.path.exists(module_file_path):
                 necessary_py_files.add(module_file_path)
+                print("add", module_file_path)
 
             for module_name in import_module_name.split(","):
                 if "\\" not in module_name:
-                    import_file_path = root_folder + "/" + import_module_path.replace(".",
-                                                                                      "/") + "/" + module_name.strip() + ".py"
+                    import_file_path = os.path.join(root_folder, *import_module_path.split("."),
+                                                    module_name.strip() + ".py")
                     if os.path.exists(import_file_path):
                         necessary_py_files.add(import_file_path)
                 else:
@@ -195,9 +209,9 @@ def get_necessary_py_file_path(root_folder: str, py_file_path: str, all_py_modul
                           py_file_path)
 
             # do back trace
-            par_module = root_folder + "/"
+            par_module = root_folder + os.path.sep
             for module in import_module_path.split("."):
-                par_module += module + "/"
+                par_module += module + os.path.sep
                 possible_init_file = par_module + "__init__.py"
                 if os.path.exists(possible_init_file):
                     necessary_py_files.add(possible_init_file)
@@ -219,14 +233,10 @@ def remove_empty_folders(root_path):
 
 # Zip the folder in a way that blender can recognize it as an addon.
 def zip_folder(target_root, output_zip_file):
-    # remove the tailing / of target_root
-    while target_root.endswith("/"):
-        target_root = target_root[0:-1]
-    shutil.make_archive(output_zip_file, 'zip', target_root + "/../", base_dir=os.path.basename(target_root))
+    shutil.make_archive(output_zip_file, 'zip', Path(target_root).parent, base_dir=os.path.basename(target_root))
 
 
 def enhance_import_for_py_files(addon_dir: str):
-    re.compile("from import ")
     namespace = os.path.basename(addon_dir)
     all_py_modules = find_all_py_modules(addon_dir)
     all_py_file = search_files(addon_dir, {".py"})
@@ -245,7 +255,7 @@ def find_all_py_modules(root_dir: str) -> set:
     all_py_file = search_files(root_dir, {".py"})
     for py_file in all_py_file:
         rel_path = str(os.path.relpath(py_file, root_dir))
-        modules = rel_path.replace("\\", "/").replace("__init__.py", "").replace(".py", "").split("/")
+        modules = rel_path.replace("__init__.py", "").replace(".py", "").split(os.path.sep)
         if len(modules[-1]) == 0:
             modules = modules[0:-1]
 
@@ -254,3 +264,8 @@ def find_all_py_modules(root_dir: str) -> set:
             module_name += modules[i] + "."
             all_py_modules.add(module_name[0:-1])
     return all_py_modules
+
+
+if __name__ == '__main__':
+    print(os.path.sep)
+    print(bool(import_module_pattern.match("from common.i18n.i18n import load_dictionary")))

@@ -3,9 +3,6 @@ import bpy
 from common.class_loader import auto_load
 from addons.sample_addon.config import __addon_name__
 from addons.sample_addon.i18n.dictionary import dictionary
-from addons.sample_addon.operators import AddonOperators
-from addons.sample_addon.panels import AddonPanels
-from addons.sample_addon.preference import AddonPreferences
 from common.i18n.dictionary import common_dictionary
 from common.i18n.i18n import load_dictionary
 

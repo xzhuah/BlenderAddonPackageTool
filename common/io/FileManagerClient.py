@@ -14,13 +14,6 @@ def get_all_subfolder(folder_path: str) -> list:
     return [f for f in listdir(folder_path) if isdir(join(folder_path, f))]
 
 
-def ensure_postfix(folder_path: str):
-    abs_folder_path = folder_path
-    if not abs_folder_path.endswith("/"):
-        abs_folder_path += "/"
-    return abs_folder_path
-
-
 def is_filename_postfix_in(filename: str, target_set: set):
     if target_set is None or len(target_set) == 0:
         return True
@@ -30,15 +23,15 @@ def is_filename_postfix_in(filename: str, target_set: set):
     return False
 
 
-# 搜索文件夹下所有文件
+# 搜索文件夹下所有文件 post_filter为后缀名集合 全小写
 def search_files(folder_path: str, post_filter: set) -> list:
     def __depth_first_search_files_helper__(current_folder: str, pre_result: list):
         for filename in get_all_filename(current_folder):
             if is_filename_postfix_in(filename, post_filter):
-                pre_result.append(ensure_postfix(current_folder) + filename)
+                pre_result.append(os.path.join(current_folder, filename))
         all_folders = get_all_subfolder(current_folder)
         for folder in all_folders:
-            __depth_first_search_files_helper__(ensure_postfix(current_folder) + folder, pre_result)
+            __depth_first_search_files_helper__(os.path.join(current_folder, folder), pre_result)
 
     all_file = []
     __depth_first_search_files_helper__(folder_path, all_file)
