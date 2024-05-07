@@ -20,7 +20,7 @@ BLENDER_ADDON_PATH = "C:/software/general/Blender/Blender3.5/3.5/scripts/addons/
 
 # The files to be ignored when release the addon
 IGNORE_FILES = [".idea", "main.py", "release.py", "test.py", "create.py", "requirements.txt",
-                ".git", "MIT-LICENSE.txt", ".gitignore",
+                ".git", ".gitignore",
                 "README.md", ]
 
 # The default release dir
