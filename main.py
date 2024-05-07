@@ -80,7 +80,6 @@ def start_test(init_file, addon_name):
     addon_path = release_addon(init_file, addon_name, with_timestamp=False,
                                release_dir=TEST_RELEASE_DIR)
     executable_path = os.path.join(os.path.dirname(addon_path), addon_name)
-    print("executable_path:", executable_path)
 
     test_addon_path = os.path.join(BLENDER_ADDON_PATH, addon_name)
     if os.path.exists(test_addon_path):
@@ -188,7 +187,6 @@ def get_necessary_py_file_path(root_folder: str, py_file_path: str, all_py_modul
     for module_path in import_module_pattern.finditer(content):
         import_module_path = module_path.groups()[0]
         import_module_name = module_path.groups()[1]
-        print(import_module_path, import_module_name)
 
         if import_module_path in all_py_modules:
             # 3 possible related files
@@ -196,7 +194,6 @@ def get_necessary_py_file_path(root_folder: str, py_file_path: str, all_py_modul
 
             if os.path.exists(module_file_path):
                 necessary_py_files.add(module_file_path)
-                print("add", module_file_path)
 
             for module_name in import_module_name.split(","):
                 if "\\" not in module_name:
@@ -264,8 +261,3 @@ def find_all_py_modules(root_dir: str) -> set:
             module_name += modules[i] + "."
             all_py_modules.add(module_name[0:-1])
     return all_py_modules
-
-
-if __name__ == '__main__':
-    print(os.path.sep)
-    print(bool(import_module_pattern.match("from common.i18n.i18n import load_dictionary")))
