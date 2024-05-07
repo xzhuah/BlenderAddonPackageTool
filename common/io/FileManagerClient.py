@@ -1,0 +1,55 @@
+import os
+from os import listdir
+from os.path import isfile, isdir, join
+
+
+def get_all_filename(folder_path: str) -> list:
+    if os.path.exists(folder_path):
+        return [f for f in listdir(folder_path) if isfile(join(folder_path, f))]
+    else:
+        return []
+
+
+def get_all_subfolder(folder_path: str) -> list:
+    return [f for f in listdir(folder_path) if isdir(join(folder_path, f))]
+
+
+def ensure_postfix(folder_path: str):
+    abs_folder_path = folder_path
+    if not abs_folder_path.endswith("/"):
+        abs_folder_path += "/"
+    return abs_folder_path
+
+
+def is_filename_postfix_in(filename: str, target_set: set):
+    if target_set is None or len(target_set) == 0:
+        return True
+    for postfix in target_set:
+        if filename.lower().endswith(postfix.lower()):
+            return True
+    return False
+
+
+# 搜索文件夹下所有文件
+def search_files(folder_path: str, post_filter: set) -> list:
+    def __depth_first_search_files_helper__(current_folder: str, pre_result: list):
+        for filename in get_all_filename(current_folder):
+            if is_filename_postfix_in(filename, post_filter):
+                pre_result.append(ensure_postfix(current_folder) + filename)
+        all_folders = get_all_subfolder(current_folder)
+        for folder in all_folders:
+            __depth_first_search_files_helper__(ensure_postfix(current_folder) + folder, pre_result)
+
+    all_file = []
+    __depth_first_search_files_helper__(folder_path, all_file)
+    return all_file
+
+
+def read_utf8(filepath: str) -> str:
+    with open(filepath, mode="r", encoding="utf-8") as f:
+        return f.read()
+
+
+def write_utf8(filepath: str, content: str):
+    with open(filepath, encoding="utf-8", mode="w") as f:
+        f.write(content)
