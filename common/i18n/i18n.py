@@ -1,4 +1,3 @@
-# Created by Xinyu Zhu on 11/25/2022, 4:24 AM
 import bpy
 
 # Get the language code when addon start up

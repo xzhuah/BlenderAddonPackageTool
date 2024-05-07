@@ -1,4 +1,3 @@
-# Created by Xinyu Zhu on 11/23/2022, 10:50 PM
 import bpy
 from addons.sample_addon.config import __addon_name__
 from addons.sample_addon.preference.AddonPreferences import ExampleAddonPreferences
