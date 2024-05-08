@@ -12,7 +12,7 @@ from common.io.FileManagerClient import read_utf8, write_utf8
 from common.io.FileManagerClient import search_files
 
 # The name of current active addon to be created, tested or released
-ACTIVE_ADDON = "test_addon"
+ACTIVE_ADDON = "new_addon"
 
 # The path of the blender executable
 BLENDER_EXE_PATH = "C:/software/general/Blender/Blender3.5/blender.exe"
@@ -39,7 +39,7 @@ import_module_pattern = re.compile("from ([a-zA-Z0-9_.]+) import (.+)")
 
 
 def new_addon(addon_name):
-    if addon_name == "sample_Addon" or not bool(addon_namespace_pattern.match(addon_name)):
+    if os.path.exists(f"./addons/{addon_name}") or not bool(addon_namespace_pattern.match(addon_name)):
         print("InValid addon_name:", addon_name, "Please name it as a python package name")
         return
     shutil.copytree("./addons/sample_addon", f"./addons/{addon_name}")
