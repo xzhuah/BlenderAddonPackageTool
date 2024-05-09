@@ -23,7 +23,6 @@ def init():
     # notice here, the path root is the root of the project
     modules = get_all_submodules(Path(__file__).parent.parent.parent)
     ordered_classes = get_ordered_classes_to_register(modules)
-    print("ordered_classes:", ordered_classes)
 
 
 def register():
