@@ -325,7 +325,9 @@ class FileUpdateHandler(FileSystemEventHandler):
         self.has_update = False
 
     def on_any_event(self, event):
-        self.has_update = True
+        source_path = event.src_path
+        if source_path.endswith(".py"):
+            self.has_update = True
 
     def clear_update(self):
         self.has_update = False
