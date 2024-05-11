@@ -1,4 +1,5 @@
 import os
+import hashlib
 from os import listdir
 from os.path import isfile, isdir, join
 
@@ -36,6 +37,18 @@ def search_files(folder_path: str, post_filter: set) -> list:
     all_file = []
     __depth_first_search_files_helper__(folder_path, all_file)
     return all_file
+
+
+def get_md5(filename):
+    return hashlib.md5(open(filename, 'rb').read()).hexdigest()
+
+
+def get_md5_folder(folder_path: str) -> str:
+    all_files = search_files(folder_path, set())
+    md5_content = ""
+    for file in all_files:
+        md5_content += get_md5(file)
+    return hashlib.md5(md5_content.encode("utf-8")).hexdigest()
 
 
 def read_utf8(filepath: str) -> str:
