@@ -5,21 +5,30 @@ import shutil
 import subprocess
 from pathlib import Path
 from datetime import datetime
+import time
 from os import listdir
 from os.path import isfile, isdir
+import threading
 
-from common.io.FileManagerClient import read_utf8, write_utf8
+from common.io.FileManagerClient import read_utf8, write_utf8, get_md5_folder
 from common.io.FileManagerClient import search_files
 
-# The name of current active addon to be created, tested or released
-ACTIVE_ADDON = "new_addon"
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 
-# The path of the blender executable
+# The name of current active addon to be created, tested or released
+ACTIVE_ADDON = "sample_addon"
+
+# The path of the blender executable. Blender2.93 is the minimum version required
+# Blender可执行文件的路径，Blender2.93是所需的最低版本
 BLENDER_EXE_PATH = "C:/software/general/Blender/Blender3.5/blender.exe"
+
 # The path of the blender addon folder
+# Blender插件文件夹的路径
 BLENDER_ADDON_PATH = "C:/software/general/Blender/Blender3.5/3.5/scripts/addons/"
 
 # The files to be ignored when release the addon
+# 发布插件时要忽略的文件
 IGNORE_FILES = [".idea", "venv", "main.py", "release.py", "test.py", "create.py", "requirements.txt",
                 ".git", ".gitignore",
                 "README.md", ]
@@ -36,6 +45,8 @@ addon_namespace_pattern = re.compile("^[a-zA-Z]+[a-zA-Z0-9_]*$")
 
 # The framework use this pattern to find the import module within the workspace
 import_module_pattern = re.compile("from ([a-zA-Z0-9_.]+) import (.+)")
+
+__addon_md5__signature__ = "addon.txt"
 
 
 def new_addon(addon_name):
@@ -76,30 +87,73 @@ def get_addon_original_package_name(addon_name):
     return os.path.basename(os.path.dirname(init_path))
 
 
-def start_test(init_file, addon_name):
-    addon_path = release_addon(init_file, addon_name, with_timestamp=False,
-                               release_dir=TEST_RELEASE_DIR)
-    executable_path = os.path.join(os.path.dirname(addon_path), addon_name)
+# https://devtalk.blender.org/t/plugin-hot-reload-by-cleaning-sys-modules/20040
+start_up_command = """
+import bpy
+from bpy.app.handlers import persistent
+import os
+import sys
+existing_addon_md5 = ""
+bpy.ops.preferences.addon_enable(module="{addon_name}")
 
+def watch_update_tick():
+    global existing_addon_md5
+    if os.path.exists("{addon_signature}"):
+        with open("{addon_signature}", "r") as f:
+            addon_md5 = f.read()
+        if existing_addon_md5 == "":
+            existing_addon_md5 = addon_md5
+        elif existing_addon_md5 != addon_md5:
+            print("Addon file changed, start to update the addon")
+            bpy.ops.preferences.addon_disable(module="{addon_name}")
+            all_modules = sys.modules
+            all_modules = dict(sorted(all_modules.items(),key= lambda x:x[0])) #sort them
+            for k,v in all_modules.items():
+                if k.startswith("{addon_name}"):
+                    del sys.modules[k]
+            bpy.ops.preferences.addon_enable(module="{addon_name}")
+            existing_addon_md5 = addon_md5
+            print("Addon updated")
+    return 1.0
+
+@persistent
+def register_watch_update_tick(dummy):
+    print("Watching for addon update...")
+    bpy.app.timers.register(watch_update_tick)
+
+register_watch_update_tick(None)
+bpy.app.handlers.load_post.append(register_watch_update_tick)
+"""
+
+
+def start_test(init_file, addon_name):
+    update_addon_for_test(init_file, addon_name)
     test_addon_path = os.path.join(BLENDER_ADDON_PATH, addon_name)
-    if os.path.exists(test_addon_path):
-        shutil.rmtree(test_addon_path)
-    shutil.copytree(executable_path, test_addon_path)
+
+    # start_watch_for_update(init_file, addon_name)
+    stop_event = threading.Event()
+    thread = threading.Thread(target=start_watch_for_update, args=(init_file, addon_name, stop_event))
+    thread.start()
 
     def exit_handler():
+        stop_event.set()
+        thread.join()
         if os.path.exists(test_addon_path):
             shutil.rmtree(test_addon_path)
 
     atexit.register(exit_handler)
 
+    python_script = start_up_command.format(addon_name=addon_name,
+                                            addon_signature=os.path.join(test_addon_path,
+                                                                         __addon_md5__signature__).replace("\\", "/"))
+
     try:
-        subprocess.call([BLENDER_EXE_PATH, "--python-expr", f"import bpy\n"
-                                                            f"bpy.ops.preferences.addon_enable(module=\"{addon_name}\")"])
+        subprocess.call([BLENDER_EXE_PATH, "--python-expr", python_script])
     finally:
         exit_handler()
 
 
-def release_addon(target_init_file, addon_name, with_timestamp=False, release_dir=DEFAULT_RELEASE_DIR):
+def release_addon(target_init_file, addon_name, with_timestamp=False, release_dir=DEFAULT_RELEASE_DIR, need_zip=True):
     if not bool(addon_namespace_pattern.match(addon_name)):
         print("InValid addon_name:", addon_name, "Please name it as a python package name")
         return
@@ -132,12 +186,14 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
                                                             "%Y%m%d_%H%M%S")) if with_timestamp else "{addon_name}".format(
         addon_name=release_folder)
 
-    # zip the addon
-    zip_folder(release_folder, real_addon_name)
     released_addon_path = os.path.abspath(os.path.join(release_dir, real_addon_name) + ".zip")
+    # zip the addon
+    if need_zip:
+        zip_folder(release_folder, real_addon_name)
+        print("Add on released:", released_addon_path)
 
     os.remove("__init__.py")
-    print("Add on released:", released_addon_path)
+
     return released_addon_path
 
 
@@ -261,3 +317,56 @@ def find_all_py_modules(root_dir: str) -> set:
             module_name += modules[i] + "."
             all_py_modules.add(module_name[0:-1])
     return all_py_modules
+
+
+class FileUpdateHandler(FileSystemEventHandler):
+    def __init__(self):
+        super(FileUpdateHandler, self).__init__()
+        self.has_update = False
+
+    def on_any_event(self, event):
+        self.has_update = True
+
+    def clear_update(self):
+        self.has_update = False
+
+
+def start_watch_for_update(init_file, addon_name, stop_event: threading.Event):
+    path = "."
+    event_handler = FileUpdateHandler()
+    observer = Observer()
+    observer.schedule(event_handler, path, recursive=True)
+    observer.start()
+
+    try:
+        while not stop_event.is_set():
+            time.sleep(1)
+            if event_handler.has_update:
+                print("Addon updated, start to update the test addon")
+                try:
+                    update_addon_for_test(init_file, addon_name)
+                    event_handler.clear_update()
+                except Exception as e:
+                    print(e)
+                    print(
+                        "Addon updated failed: Please make sure no other process is using the addon folder. You might need to restart the test to update the addon in Blender.")
+        print("Stop watching for update...")
+
+    except KeyboardInterrupt:
+        observer.stop()
+        observer.join()
+
+
+def update_addon_for_test(init_file, addon_name):
+    addon_path = release_addon(init_file, addon_name, with_timestamp=False,
+                               release_dir=TEST_RELEASE_DIR, need_zip=False)
+    executable_path = os.path.join(os.path.dirname(addon_path), addon_name)
+
+    test_addon_path = os.path.join(BLENDER_ADDON_PATH, addon_name)
+    if os.path.exists(test_addon_path):
+        shutil.rmtree(test_addon_path)
+    shutil.copytree(executable_path, test_addon_path)
+
+    # write an MD5 to the addon folder to inform the addon content has been changed
+    addon_md5 = get_md5_folder(executable_path)
+    write_utf8(os.path.join(test_addon_path, __addon_md5__signature__), addon_md5)
