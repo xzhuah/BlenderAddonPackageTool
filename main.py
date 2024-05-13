@@ -20,15 +20,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import atexit, os, re, shutil, subprocess, time, threading
-from pathlib import Path
+import atexit
+import os
+import re
+import shutil
+import subprocess
+import threading
+import time
 from datetime import datetime
 from os import listdir
 from os.path import isfile, isdir
+from pathlib import Path
 
 from common.class_loader.module_installer import install_if_missing, install_fake_bpy, default_blender_addon_path
 
 # The name of current active addon to be created, tested or released
+# 要创建、测试或发布的当前活动插件的名称
 ACTIVE_ADDON = "sample_addon"
 
 # The path of the blender executable. Blender2.93 is the minimum version required
