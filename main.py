@@ -389,7 +389,6 @@ def start_watch_for_update(init_file, addon_name, stop_event: threading.Event):
         while not stop_event.is_set():
             time.sleep(1)
             if event_handler.has_update:
-                print("Addon updated, start to update the test addon")
                 try:
                     update_addon_for_test(init_file, addon_name)
                     event_handler.clear_update()
