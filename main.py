@@ -125,7 +125,10 @@ from bpy.app.handlers import persistent
 import os
 import sys
 existing_addon_md5 = ""
-bpy.ops.preferences.addon_enable(module="{addon_name}")
+try:
+    bpy.ops.preferences.addon_enable(module="{addon_name}")
+except Exception as e:
+    print("Addon enable failed:", e)
 
 def watch_update_tick():
     global existing_addon_md5
@@ -136,13 +139,16 @@ def watch_update_tick():
             existing_addon_md5 = addon_md5
         elif existing_addon_md5 != addon_md5:
             print("Addon file changed, start to update the addon")
-            bpy.ops.preferences.addon_disable(module="{addon_name}")
-            all_modules = sys.modules
-            all_modules = dict(sorted(all_modules.items(),key= lambda x:x[0])) #sort them
-            for k,v in all_modules.items():
-                if k.startswith("{addon_name}"):
-                    del sys.modules[k]
-            bpy.ops.preferences.addon_enable(module="{addon_name}")
+            try:
+                bpy.ops.preferences.addon_disable(module="{addon_name}")
+                all_modules = sys.modules
+                all_modules = dict(sorted(all_modules.items(),key= lambda x:x[0])) #sort them
+                for k,v in all_modules.items():
+                    if k.startswith("{addon_name}"):
+                        del sys.modules[k]
+                bpy.ops.preferences.addon_enable(module="{addon_name}")
+            except Exception as e:
+                print("Addon update failed:", e)
             existing_addon_md5 = addon_md5
             print("Addon updated")
     return 1.0
