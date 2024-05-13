@@ -273,14 +273,14 @@ def remove_unnecessary_modules(release_folder, addon_original_package_name):
         removed_path = remove_empty_folders(release_folder)
 
 
-# pyc files are auto generated when import, need to be removed before release
+# pyc files are auto generated, need to be removed before release
 def remove_pyc_files(release_folder: str):
     all_pyc_file = search_files(release_folder, {"pyc"})
     for pyc_file in all_pyc_file:
         os.remove(pyc_file)
 
 
-def get_necessary_py_file_path(root_folder: str, py_file_path: str, all_py_modules: set) -> list:
+def get_necessary_py_file_path(root_folder: str, py_file_path: str, all_py_modules: set) -> set:
     if not py_file_path.startswith(root_folder):
         py_file_path = os.path.join(root_folder, py_file_path)
     content = read_utf8(py_file_path)
