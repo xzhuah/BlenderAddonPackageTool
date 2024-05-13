@@ -10,11 +10,7 @@ from os import listdir
 from os.path import isfile, isdir
 import threading
 
-from common.io.FileManagerClient import read_utf8, write_utf8, get_md5_folder
-from common.io.FileManagerClient import search_files
-
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+from common.class_loader.module_installer import install_if_missing, install_fake_bpy, default_blender_addon_path
 
 # The name of current active addon to be created, tested or released
 ACTIVE_ADDON = "sample_addon"
@@ -25,7 +21,10 @@ BLENDER_EXE_PATH = "C:/software/general/Blender/Blender3.5/blender.exe"
 
 # The path of the blender addon folder
 # Blender插件文件夹的路径
-BLENDER_ADDON_PATH = "C:/software/general/Blender/Blender3.5/3.5/scripts/addons/"
+BLENDER_ADDON_PATH = default_blender_addon_path(BLENDER_EXE_PATH)
+# You can override the default path by setting the path manually
+# 您可以通过手动设置路径来覆盖默认插件安装路径
+# BLENDER_ADDON_PATH = "C:/software/general/Blender/Blender3.5/3.5/scripts/addons/"
 
 # The files to be ignored when release the addon
 # 发布插件时要忽略的文件
@@ -47,6 +46,15 @@ addon_namespace_pattern = re.compile("^[a-zA-Z]+[a-zA-Z0-9_]*$")
 import_module_pattern = re.compile("from ([a-zA-Z0-9_.]+) import (.+)")
 
 __addon_md5__signature__ = "addon.txt"
+
+install_if_missing("watchdog")
+install_fake_bpy(BLENDER_EXE_PATH)
+
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+
+from common.io.FileManagerClient import read_utf8, write_utf8, get_md5_folder
+from common.io.FileManagerClient import search_files
 
 
 def new_addon(addon_name):

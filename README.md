@@ -3,7 +3,8 @@
 This project provides a basic framework for developing Blender add-ons and a packaging tool. The main features include:
 
 1. A single command to create a template add-on, facilitating quick development.
-2. Integration with an IDE, allowing you to run and test your add-on in Blender with a single command.
+2. Integration with an IDE, allowing you to run and test your add-on in Blender with a single command. Support hot swap
+   for code changes. You can see the changes in Blender immediately after saving the code.
 3. A single command to package the add-on into an installable package, making it easier for users to install. The
    packaging tool automatically detects and includes any dependencies required by the add-on.
 4. A framework supporting simultaneous development of multiple add-ons, enabling code reuse across different add-ons.
@@ -12,6 +13,7 @@ This project provides a basic framework for developing Blender add-ons and a pac
 
 Install the following external library to use this project in an IDE:
 https://github.com/nutti/fake-bpy-module
+https://github.com/gorakhargosh/watchdog
 
 ## Basic Framework
 
@@ -26,6 +28,7 @@ https://github.com/nutti/fake-bpy-module
 - [common](common): A directory to store shared utilities.
 
 ## Framework Development Guidelines
+Blender Version >= 2.93
 
 Each add-on, while adhering to the basic structure of a Blender add-on, should include a `config.py` file to configure
 the add-on's package name, ensuring it doesn't conflict with other add-ons.
@@ -38,17 +41,12 @@ This project depends on the `addons` folder; do not rename this folder.
 ## Usage
 
 1. Clone this repository.
-2. Open this project in your IDE. Optional: Configure the IDE to use the same python interpreter as Blender.
-3. Install necessary requirements:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Configure the Blender executable path (BLENDER_EXE_PATH) and addon path (BLENDER_ADDON_PATH) in [main.py](main.py).
-5. Configure the name of the addon you want to create (ACTIVE_ADDON) in [main.py](main.py).
-6. Run create.py to create a new addon in your IDE
-7. Develop your addon in the newly created addon directory.
-8. Run test.py to test your addon in Blender.
-9. Run release.py to package your addon into an installable package. The packaged addon path will appears in the
+1. Open this project in your IDE. Optional: Configure the IDE to use the same python interpreter as Blender.
+1. Configure the name of the addon you want to create (ACTIVE_ADDON) in [main.py](main.py).
+1. Run create.py to create a new addon in your IDE
+1. Develop your addon in the newly created addon directory.
+1. Run test.py to test your addon in Blender.
+1. Run release.py to package your addon into an installable package. The packaged addon path will appears in the
    terminal when packaged successfully.
 
 # Blender 插件开发框架及打包工具
@@ -56,13 +54,14 @@ This project depends on the `addons` folder; do not rename this folder.
 本项目是一个基础的Blender插件开发框架和打包工具. 主要功能包括：
 
 1. 一条命令创建一个模版插件插件，方便进行快速开发
-2. 与IDE集成，在IDE中可以通过一条命令在Blender上运行插件的测试
+2. 与IDE集成，在IDE中可以通过一条命令在Blender上运行插件的测试, 支持代码热更新，保存代码后可以立即在Blender中看到变化
 3. 一条命令将插件打包成一个安装包，方便用户安装，打包工具自动检测插件的依赖关系，自动打包插件所需的依赖文件
 4. 提供了一个支持多个插件同时开发的框架，方便插件开发者进行跨插件的功能复用
 5. 提供了常用的插件开发工具，比如自动加载类的auto_load工具，提供国际化翻译的i18n工具，方便新手开发者进行高水平插件开发
 
 请安装以下外部库以便在IDE中使用本项目：
 https://github.com/nutti/fake-bpy-module
+https://github.com/gorakhargosh/watchdog
 
 ## 基础框架
 
@@ -79,6 +78,7 @@ https://github.com/nutti/fake-bpy-module
 [common](common): 存放公共工具的目录
 
 ## 框架开发要求
+Blender 版本 >= 2.93
 
 每个插件在符合Blender插件的结构基础上，需要有一个config.py文件用于配置插件的包名，避免与其他插件冲突。
 在导入依赖时需要书写完整包名，比如 `from addons.sample_addon.config import __addon_name__`
@@ -89,14 +89,10 @@ https://github.com/nutti/fake-bpy-module
 ## 使用说明
 
 1. 克隆此项目。
-2. 在您的 IDE 中打开此项目。你可以将IDE使用的Python.exe配置成与Blender相同。
-3. 安装必要的依赖：
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. 在 [main.py](main.py) 中配置 Blender 可执行文件路径（BLENDER_EXE_PATH）和插件安装路径（BLENDER_ADDON_PATH）。
-5. 在 [main.py](main.py) 中配置您想要创建的插件名称（ACTIVE_ADDON）。
-6. 运行 create.py 在您的 IDE 中创建一个新的插件。
-7. 在新创建的插件目录中开发您的插件。
-8. 运行 test.py 在 Blender 中测试您的插件。
-9. 运行 release.py 将您的插件打包成可安装的包。成功打包后，终端中将显示打包插件的路径。
+1. 在您的 IDE 中打开此项目。你可以将IDE使用的Python.exe配置成与Blender相同。
+1. 在 [main.py](main.py) 中配置 Blender 可执行文件路径（BLENDER_EXE_PATH）
+1. 在 [main.py](main.py) 中配置您想要创建的插件名称（ACTIVE_ADDON）。
+1. 运行 create.py 在您的 IDE 中创建一个新的插件。
+1. 在新创建的插件目录中开发您的插件。
+1. 运行 test.py 在 Blender 中测试您的插件。
+1. 运行 release.py 将您的插件打包成可安装的包。成功打包后，终端中将显示打包插件的路径。
