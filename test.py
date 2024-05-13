@@ -8,4 +8,4 @@ addon_name_to_test = ACTIVE_ADDON
 # addon_name_to_test = "new_addon"
 
 if __name__ == '__main__':
-    test_addon(addon_name_to_test)
+    test_addon(addon_name_to_test, enable_watch=True)

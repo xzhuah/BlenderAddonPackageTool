@@ -69,9 +69,9 @@ def new_addon(addon_name):
         write_utf8(py_file, content)
 
 
-def test_addon(addon_name):
+def test_addon(addon_name, enable_watch=True):
     init_file = get_init_file_path(addon_name)
-    start_test(init_file, addon_name)
+    start_test(init_file, addon_name, enable_watch=enable_watch)
 
 
 def get_init_file_path(addon_name):
@@ -134,9 +134,23 @@ bpy.app.handlers.load_post.append(register_watch_update_tick)
 """
 
 
-def start_test(init_file, addon_name):
+def start_test(init_file, addon_name, enable_watch=True):
     update_addon_for_test(init_file, addon_name)
     test_addon_path = os.path.join(BLENDER_ADDON_PATH, addon_name)
+
+    if not enable_watch:
+        def exit_handler():
+            if os.path.exists(test_addon_path):
+                shutil.rmtree(test_addon_path)
+
+        atexit.register(exit_handler)
+        try:
+            subprocess.call(
+                [BLENDER_EXE_PATH, "--python-expr",
+                 f"import bpy\nbpy.ops.preferences.addon_enable(module=\"{addon_name}\")"])
+        finally:
+            exit_handler()
+        return
 
     # start_watch_for_update(init_file, addon_name)
     stop_event = threading.Event()
