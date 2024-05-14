@@ -35,7 +35,7 @@ def extract_blender_version(blender_exe_path: str):
     for version in ["2.93", "3.0", "3.1", "3.2", "3.3", "3.4", "3.5", "3.6", "4.0"]:
         if os.path.exists(os.path.join(folder_path, version)):
             return version
-    pattern = r'[-+]?\d*\.?\d+'
+    pattern = r'\d+\.?\d+'
     matches = re.findall(pattern, blender_exe_path)
     for match in matches[::-1]:
         if os.path.exists(os.path.join(folder_path, match)):
@@ -72,8 +72,3 @@ def default_blender_addon_path(blender_path: str):
     blender_version = extract_blender_version(blender_path)
     assert blender_version is not None, "Blender version not found in path: " + blender_path
     return os.path.join(os.path.dirname(blender_path), blender_version, "scripts", "addons")
-
-
-if __name__ == '__main__':
-    print(extract_blender_version(
-        "C:/software/general/Blender/blender-4.2.0-alpha/blender-4.2.0-alpha+main.06d3627c4398-windows.amd64-release/blender.exe"))
