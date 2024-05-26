@@ -17,7 +17,7 @@ class ExampleAddonPanel(bpy.types.Panel):
         addon_prefs = context.preferences.addons[__addon_name__].preferences
 
         layout = self.layout
-        # text= is required
+
         layout.label(text=i18n("Example Functions") + ": " + str(addon_prefs.number))
         layout.prop(addon_prefs, "filepath")
         layout.separator()
