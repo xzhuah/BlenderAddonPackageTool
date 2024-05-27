@@ -196,12 +196,12 @@ def toposort(deps_dict):
 def register_framework_class(cls):
     if issubclass(cls, ExpandableUi):
         if hasattr(bpy.types, cls.target_id):
-            if cls.mode == "APPEND":
+            if cls.expand_mode == "APPEND":
                 getattr(bpy.types, cls.target_id).append(cls.draw)
-            elif cls.mode == "PREPEND":
+            elif cls.expand_mode == "PREPEND":
                 getattr(bpy.types, cls.target_id).prepend(cls.draw)
             else:
-                raise ValueError(f"Invalid mode: {cls.mode}")
+                raise ValueError(f"Invalid expand_mode: {cls.expand_mode}")
         else:
             print(f"Warning: Target ID not found: {cls.target_id}")
 
