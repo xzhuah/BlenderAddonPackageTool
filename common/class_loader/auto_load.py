@@ -202,6 +202,8 @@ def register_framework_class(cls):
                 getattr(bpy.types, cls.target_id).prepend(cls.draw)
             else:
                 raise ValueError(f"Invalid mode: {cls.mode}")
+        else:
+            print(f"Warning: Target ID not found: {cls.target_id}")
 
 
 def unregister_framework_class(cls):
