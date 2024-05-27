@@ -11,18 +11,23 @@ __all__ = (
     "unregister",
 )
 
+from common.types.framework import ExpandableUi
+
 blender_version = bpy.app.version
 
 modules = None
 ordered_classes = None
+frame_work_classes = None
 
 
 def init():
     global modules
     global ordered_classes
+    global frame_work_classes
     # notice here, the path root is the root of the project
     modules = get_all_submodules(Path(__file__).parent.parent.parent)
     ordered_classes = get_ordered_classes_to_register(modules)
+    frame_work_classes = get_framework_classes(modules)
 
 
 def register():
@@ -35,6 +40,9 @@ def register():
         if hasattr(module, "register"):
             module.register()
 
+    for cls in frame_work_classes:
+        register_framework_class(cls)
+
 
 def unregister():
     for cls in reversed(ordered_classes):
@@ -45,6 +53,9 @@ def unregister():
             continue
         if hasattr(module, "unregister"):
             module.unregister()
+
+    for cls in frame_work_classes:
+        unregister_framework_class(cls)
 
 
 # Import modules
@@ -74,6 +85,15 @@ def iter_submodule_names(path, root=""):
 
 def get_ordered_classes_to_register(modules):
     return toposort(get_register_deps_dict(modules))
+
+
+def get_framework_classes(modules):
+    base_types = get_framework_base_classes()
+    all_framework_classes = set()
+    for cls in get_classes_in_modules(modules):
+        if any(base in base_types for base in cls.__bases__):
+            all_framework_classes.add(cls)
+    return all_framework_classes
 
 
 def get_register_deps_dict(modules):
@@ -151,6 +171,10 @@ def get_register_base_types():
     ])
 
 
+def get_framework_base_classes():
+    return {ExpandableUi}
+
+
 # Find order to register to solve dependencies
 #################################################
 
@@ -167,3 +191,35 @@ def toposort(deps_dict):
                 unsorted.append(value)
         deps_dict = {value: deps_dict[value] - sorted_values for value in unsorted}
     return sorted_list
+
+
+def register_framework_class(cls):
+    if issubclass(cls, ExpandableUi):
+        if hasattr(bpy.types, cls.target_id):
+            if cls.mode == "APPEND":
+                getattr(bpy.types, cls.target_id).append(cls.draw)
+            elif cls.mode == "PREPEND":
+                getattr(bpy.types, cls.target_id).prepend(cls.draw)
+            else:
+                raise ValueError(f"Invalid mode: {cls.mode}")
+
+
+def unregister_framework_class(cls):
+    if issubclass(cls, ExpandableUi):
+        if hasattr(bpy.types, cls.target_id):
+            getattr(bpy.types, cls.target_id).remove(cls.draw)
+
+
+# support adding properties in a declarative way
+def add_properties(property_dict: dict[typing.Any, dict[str, typing.Any]]):
+    for cls, properties in property_dict.items():
+        for name, prop in properties.items():
+            setattr(cls, name, prop)
+
+
+# support removing properties in a declarative way
+def remove_properties(property_dict: dict[typing.Any, dict[str, typing.Any]]):
+    for cls, properties in property_dict.items():
+        for name in properties.keys():
+            if hasattr(cls, name):
+                delattr(cls, name)
