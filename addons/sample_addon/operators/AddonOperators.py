@@ -5,6 +5,7 @@ from addons.sample_addon.preference.AddonPreferences import ExampleAddonPreferen
 
 # This Example Operator will scale up the selected object
 class ExampleOperator(bpy.types.Operator):
+    '''ExampleAddon'''
     bl_idname = "object.example_ops"
     bl_label = "ExampleOperator"
 
