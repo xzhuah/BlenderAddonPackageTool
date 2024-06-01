@@ -1,5 +1,5 @@
-import os
 import hashlib
+import os
 from os import listdir
 from os.path import isfile, isdir, join
 

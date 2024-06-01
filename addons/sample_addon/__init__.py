@@ -1,8 +1,8 @@
 import bpy
 
-from common.class_loader import auto_load
 from addons.sample_addon.config import __addon_name__
 from addons.sample_addon.i18n.dictionary import dictionary
+from common.class_loader import auto_load
 from common.class_loader.auto_load import add_properties, remove_properties
 from common.i18n.dictionary import common_dictionary
 from common.i18n.i18n import load_dictionary

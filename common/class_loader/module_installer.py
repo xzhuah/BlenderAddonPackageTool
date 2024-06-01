@@ -1,9 +1,9 @@
+import importlib.metadata
 import importlib.util
 import os.path
+import re
 import subprocess
 import sys
-import re
-import importlib.metadata
 
 
 def install(package):
