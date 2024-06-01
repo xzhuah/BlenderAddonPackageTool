@@ -52,6 +52,19 @@ This project depends on the `addons` folder; do not rename this folder.
 1. Run release.py to package your addon into an installable package. The packaged addon path will appears in the
    terminal when packaged successfully.
 
+# Features Provided by the Framework
+1. You don't need to worry about register and unregister classes in Blender add-ons. The framework automatically loads and
+   unloads classes in your add-ons. You just need to define your classes in the addon's folder.
+2. You can use internationalization in your add-ons. Just add translations in the standard format to the `dictionary.py`
+   file in the `i18n` folder of your add-on.
+3. You can define RNA properties declaratively. Just follow the examples in the `__init__.py` file to add your RNA
+   properties. The framework will automatically register and unregister your RNA properties.
+4. You can use the `ExpandableUi` class in `common/types/framework.py` to easily extend Blender's native UI components,
+   such as menus, panels, pie menus, and headers. Just inherit from this class and implement the `draw` method. You can
+   specify the ID of the native UI component you want to extend using `target_id` and specify whether to append or
+   prepend using `expand_mode`.
+
+
 # Blender 插件开发框架及打包工具
 
 本项目是一个基础的Blender插件开发框架和打包工具. 主要功能包括：
@@ -102,3 +115,12 @@ Blender 版本 >= 2.93
 1. 在新创建的插件目录中开发您的插件。
 1. 运行 test.py 在 Blender 中测试您的插件。
 1. 运行 release.py 将您的插件打包成可安装的包。成功打包后，终端中将显示打包插件的路径。
+
+## 框架提供的功能
+
+1. 你基本上无需关心Blender插件的类的加载和卸载，框架会自动加载和卸载你的插件中的类
+2. 你可以在插件中使用国际化翻译，只需要在插件文件夹中的i18n中的dictionary.py文件中按标准格式添加翻译即可
+3. 你可以使用声明式的方式定义RNA属性，只需要根据__init__.py中的注释示例添加你的RNA属性即可，框架会自动注册和卸载你的RNA属性
+4.
+你可以使用common/types/framework.py中的ExpandableUi类来方便的扩展Blender原生的菜单，面板，饼菜单，标题栏等UI组件,只需继承该类并实现draw方法，你可以通过target_id来指定需要扩展的原生UI组件的ID,
+通过expand_mode来指定向前还是向后扩展。
