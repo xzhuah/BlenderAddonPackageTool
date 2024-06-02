@@ -45,8 +45,9 @@ This project depends on the `addons` folder; do not rename this folder.
 1. Open this project in your IDE. Optional: Configure the IDE to use the same python interpreter as Blender.
 1. Note: For PyCharm users, change the value idea.max.intellisense.filesize in idea.properties file ( Help | Edit Custom
    Properties.) to more than 2600 because some modules have the issue of being too big for intelliSense to work.
-2. Configure the name of the addon you want to create (ACTIVE_ADDON) in [main.py](main.py).
-1. Run create.py to create a new addon in your IDE
+1. Configure the name of the addon you want to create (ACTIVE_ADDON) in [main.py](main.py).
+1. Run create.py to create a new addon in your IDE. The first time you run this, it will download dependencies, including
+   watchdog and fake-bpy-module.
 1. Develop your addon in the newly created addon directory.
 1. Run test.py to test your addon in Blender.
 1. Run release.py to package your addon into an installable package. The packaged addon path will appears in the
@@ -111,7 +112,7 @@ Blender 版本 >= 2.93
    中的idea.max.intellisense.filesize的值更改为大于2600，因为某些模块的大小超过了intelliSense的工作范围。
 1. 在 [main.py](main.py) 中配置 Blender 可执行文件路径（BLENDER_EXE_PATH）
 1. 在 [main.py](main.py) 中配置您想要创建的插件名称（ACTIVE_ADDON）。
-1. 运行 create.py 在您的 IDE 中创建一个新的插件。
+1. 运行 create.py 在您的 IDE 中创建一个新的插件。第一次运行时需要联网下载依赖库,包括watchdog和fake-bpy-module
 1. 在新创建的插件目录中开发您的插件。
 1. 运行 test.py 在 Blender 中测试您的插件。
 1. 运行 release.py 将您的插件打包成可安装的包。成功打包后，终端中将显示打包插件的路径。
