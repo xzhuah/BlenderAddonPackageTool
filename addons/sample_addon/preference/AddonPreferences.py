@@ -16,7 +16,7 @@ class ExampleAddonPreferences(AddonPreferences):
     # when the class is registered, i.e. we need to restart blender for the property name to be correctly translated.
     filepath: StringProperty(
         name="Resource Folder",
-        default=os.path.join(os.path.expanduser("~"), "Documents", "ExampleAddonPreferences"),
+        default=os.path.join(os.path.expanduser("~"), "Documents", __addon_name__),
         subtype='DIR_PATH',
     )
     number: IntProperty(
