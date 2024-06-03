@@ -71,4 +71,7 @@ def default_blender_addon_path(blender_path: str):
         "blender.exe"), "Invalid blender path: " + blender_path + "! Please provide a valid blender path pointing to the blender.exe."
     blender_version = extract_blender_version(blender_path)
     assert blender_version is not None, "Blender version not found in path: " + blender_path
+    new_path = os.path.join(os.path.dirname(blender_path), blender_version, "scripts", "addons_core")
+    if os.path.exists(new_path):
+        return new_path
     return os.path.join(os.path.dirname(blender_path), blender_version, "scripts", "addons")
