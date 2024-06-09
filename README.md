@@ -1,19 +1,21 @@
 # Blender Add-on Development Framework and Packaging Tool
 
-This project provides a basic framework for developing Blender add-ons and a packaging tool. The main features include:
+This project provides a lightweight framework for developing Blender add-ons and a packaging tool. The main
+features include:
 
 1. A single command to create a template add-on, facilitating quick development.
-2. Integration with an IDE, allowing you to run and test your add-on in Blender with a single command. Support hot swap
+1. Integration with an IDE, allowing you to run and test your add-on in Blender with a single command. Support hot swap
    for code changes. You can see the changes in Blender immediately after saving the code.
-3. A single command to package the add-on into an installable package, making it easier for users to install. The
+1. A single command to package the add-on into an installable package, making it easier for users to install. The
    packaging tool automatically detects and includes any dependencies required by the add-on.
-4. A framework supporting simultaneous development of multiple add-ons, enabling code reuse across different add-ons.
-5. Handy development tools, like an auto-load utility for automatic class loading and an internationalization (i18n)
+1. A framework supporting simultaneous development of multiple add-ons, enabling code reuse across different add-ons.
+1. Handy development tools, like an auto-load utility for automatic class loading and an internationalization (i18n)
    tool, to assist even new developers in creating high-quality add-ons.
 
 Install the following external library to use this project in an IDE:
-https://github.com/nutti/fake-bpy-module
-https://github.com/gorakhargosh/watchdog
+
+- https://github.com/nutti/fake-bpy-module
+- https://github.com/gorakhargosh/watchdog
 
 ## Basic Framework
 
@@ -46,39 +48,61 @@ This project depends on the `addons` folder; do not rename this folder.
 1. Note: For PyCharm users, change the value idea.max.intellisense.filesize in idea.properties file ( Help | Edit Custom
    Properties.) to more than 2600 because some modules have the issue of being too big for intelliSense to work.
 1. Configure the name of the addon you want to create (ACTIVE_ADDON) in [main.py](main.py).
-1. Run create.py to create a new addon in your IDE. The first time you run this, it will download dependencies, including
+1. Run create.py to create a new addon in your IDE. The first time you run this, it will download dependencies,
+   including
    watchdog and fake-bpy-module.
 1. Develop your addon in the newly created addon directory.
 1. Run test.py to test your addon in Blender.
 1. Run release.py to package your addon into an installable package. The packaged addon path will appears in the
    terminal when packaged successfully.
 
-# Features Provided by the Framework
-1. You don't need to worry about register and unregister classes in Blender add-ons. The framework automatically loads and
+## Features Provided by the Framework
+
+1. You don't need to worry about register and unregister classes in Blender add-ons. The framework automatically loads
+   and
    unloads classes in your add-ons. You just need to define your classes in the addon's folder.
-2. You can use internationalization in your add-ons. Just add translations in the standard format to the `dictionary.py`
+1. You can use internationalization in your add-ons. Just add translations in the standard format to the `dictionary.py`
    file in the `i18n` folder of your add-on.
-3. You can define RNA properties declaratively. Just follow the examples in the `__init__.py` file to add your RNA
+1. You can define RNA properties declaratively. Just follow the examples in the `__init__.py` file to add your RNA
    properties. The framework will automatically register and unregister your RNA properties.
-4. You can use the `ExpandableUi` class in `common/types/framework.py` to easily extend Blender's native UI components,
+1. You can use the `ExpandableUi` class in `common/types/framework.py` to easily extend Blender's native UI components,
    such as menus, panels, pie menus, and headers. Just inherit from this class and implement the `draw` method. You can
    specify the ID of the native UI component you want to extend using `target_id` and specify whether to append or
    prepend using `expand_mode`.
 
+## Contributions
+
+1. Framework Updates: If you are using this framework in your project and need to migrate to a newer version, you will
+   need to manually replace the framework files to get the new features. We are looking for more user-friendly migration
+   experience. In general, we aim to keep the framework lightweight and avoid making structural changes. Most future
+   updates are expected to just adding new features rather than making major changes to the framework structure. So
+   unless you personally made changes to the framework code locally, you will only need to replace the old files with
+   the new ones in future updates.
+1. Breakpoint Debugging: The framework currently does not support breakpoint debugging within the IDE. Implementing this
+   feature requires some modifications to the framework code, which may increase the complexity of using the framework.
+   We are looking for a lightweight solution to enable this feature. However, in general, breakpoint debugging is not
+   necessary for developing add-ons. Breakpoint debugging is helpful for complex add-ons features, but logging is
+   sufficient in most of the cases. For this framework, breakpoint debugging would be a nice-to-have feature, but not a
+   must-have.
 
 # Blender 插件开发框架及打包工具
 
-本项目是一个基础的Blender插件开发框架和打包工具. 主要功能包括：
+本项目是一个轻量级的Blender插件开发框架和打包工具. 主要功能包括：
 
 1. 一条命令创建一个模版插件插件，方便进行快速开发
-2. 与IDE集成，在IDE中可以通过一条命令在Blender上运行插件的测试, 支持代码热更新，保存代码后可以立即在Blender中看到变化
-3. 一条命令将插件打包成一个安装包，方便用户安装，打包工具自动检测插件的依赖关系，自动打包插件所需的依赖文件
-4. 提供了一个支持多个插件同时开发的框架，方便插件开发者进行跨插件的功能复用
-5. 提供了常用的插件开发工具，比如自动加载类的auto_load工具，提供国际化翻译的i18n工具，方便新手开发者进行高水平插件开发
+1. 与IDE集成，在IDE中可以通过一条命令在Blender上运行插件的测试, 支持代码热更新，保存代码后可以立即在Blender中看到变化
+1. 一条命令将插件打包成一个安装包，方便用户安装，打包工具自动检测插件的依赖关系，自动打包插件所需的依赖文件
+1. 提供了一个支持多个插件同时开发的框架，方便插件开发者进行跨插件的功能复用
+1. 提供了常用的插件开发工具，比如自动加载类的auto_load工具，提供国际化翻译的i18n工具，方便新手开发者进行高水平插件开发
+
+欢迎观看我们的中文视频教程：
+- [B站](https://www.bilibili.com/video/BV1Gn4y1d7Bp)
+- [YouTube](https://www.youtube.com/watch?v=Pjf7wg3IzDE&list=PLPkz3Ny42tJtxzw7xVUWvLI3FwEeETVOj&index=1&t=5s)
 
 请安装以下外部库以便在IDE中使用本项目：
-https://github.com/nutti/fake-bpy-module
-https://github.com/gorakhargosh/watchdog
+
+- https://github.com/nutti/fake-bpy-module
+- https://github.com/gorakhargosh/watchdog
 
 ## 基础框架
 
@@ -108,7 +132,7 @@ Blender 版本 >= 2.93
 
 1. 克隆此项目。
 1. 在您的 IDE 中打开此项目。你可以将IDE使用的Python.exe配置成与Blender相同。
-2. 对于PyCharm用户，请将idea.properties文件(点击 Help | Edit Custom Properties.)
+1. 对于PyCharm用户，请将idea.properties文件(点击 Help | Edit Custom Properties.)
    中的idea.max.intellisense.filesize的值更改为大于2600，因为某些模块的大小超过了intelliSense的工作范围。
 1. 在 [main.py](main.py) 中配置 Blender 可执行文件路径（BLENDER_EXE_PATH）
 1. 在 [main.py](main.py) 中配置您想要创建的插件名称（ACTIVE_ADDON）。
@@ -120,8 +144,16 @@ Blender 版本 >= 2.93
 ## 框架提供的功能
 
 1. 你基本上无需关心Blender插件的类的加载和卸载，框架会自动加载和卸载你的插件中的类
-2. 你可以在插件中使用国际化翻译，只需要在插件文件夹中的i18n中的dictionary.py文件中按标准格式添加翻译即可
-3. 你可以使用声明式的方式定义RNA属性，只需要根据__init__.py中的注释示例添加你的RNA属性即可，框架会自动注册和卸载你的RNA属性
-4.
-你可以使用common/types/framework.py中的ExpandableUi类来方便的扩展Blender原生的菜单，面板，饼菜单，标题栏等UI组件,只需继承该类并实现draw方法，你可以通过target_id来指定需要扩展的原生UI组件的ID,
-通过expand_mode来指定向前还是向后扩展。
+1. 你可以在插件中使用国际化翻译，只需要在插件文件夹中的i18n中的dictionary.py文件中按标准格式添加翻译即可
+1. 你可以使用声明式的方式定义RNA属性，只需要根据__init__.py中的注释示例添加你的RNA属性即可，框架会自动注册和卸载你的RNA属性
+1. 你可以使用common/types/framework.py中的ExpandableUi类来方便的扩展Blender原生的菜单，面板，饼菜单，标题栏等UI组件,
+   只需继承该类并实现draw方法，你可以通过target_id来指定需要扩展的原生UI组件的ID,
+   通过expand_mode来指定向前还是向后扩展。
+
+## 框架在以下方面可进一步完善，欢迎贡献意见和代码
+
+1. 框架的更新：如果你已经在项目中使用了这个框架进行开发，当你需要迁移到更新的框架版本时，你需要手动替换框架代码文件来获取新的功能，
+   我们希望探索一些更友好的方式来帮助更新框架代码，欢迎提供意见。但总的来说，我们希望框架保持轻量，不会在结构上有太大的变化。
+   可以预计未来的大部分更新都是在增加新的功能，而不是对框架结构进行大的调整。除非你在本地对框架代码有所改动，未来的更新你只需要将新的文件替换旧的文件即可。
+1. 断点调试：目前框架并不支持IDE内的断点调试，实现这个功能需要对框架代码进行一些修改，这也许会增加框架的使用难度，我们力求寻找尽量轻量级的解决方案。但总的来说，
+   断点调试对应开发插件并不是必须的，大部分的插件功能并没有复杂到需要断点调试，打印日志也可以达到大部分的调试的目的。对于这个框架，如果我们力求寻找一个简单的方案来支持断点调试，但这不是必须的。
