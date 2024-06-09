@@ -4,11 +4,12 @@ This project provides a lightweight framework for developing Blender add-ons and
 features include:
 
 1. A single command to create a template add-on, facilitating quick development.
-1. Integration with an IDE, allowing you to run and test your add-on in Blender with a single command. Support hot swap
+   1The framework is designed for developing multiple addon in one project, it allows you to reuse functions across
+   different addons, and helps you package only necessary modules into the zip file.
+1. Allows you to run and test your add-on in Blender with a single command. Support hot swap
    for code changes. You can see the changes in Blender immediately after saving the code.
 1. A single command to package the add-on into an installable package, making it easier for users to install. The
    packaging tool automatically detects and includes any dependencies required by the add-on.
-1. A framework supporting simultaneous development of multiple add-ons, enabling code reuse across different add-ons.
 1. Handy development tools, like an auto-load utility for automatic class loading and an internationalization (i18n)
    tool, to assist even new developers in creating high-quality add-ons.
 
@@ -90,12 +91,13 @@ This project depends on the `addons` folder; do not rename this folder.
 本项目是一个轻量级的Blender插件开发框架和打包工具. 主要功能包括：
 
 1. 一条命令创建一个模版插件插件，方便进行快速开发
-1. 与IDE集成，在IDE中可以通过一条命令在Blender上运行插件的测试, 支持代码热更新，保存代码后可以立即在Blender中看到变化
+1. 本框架设计用于在一个项目中开发多个插件，可以让你在不同的插件之间复用函数功能，它自动检测模块之间的依赖关系，帮助你将相关联的模块打包到zip文件中，而不包含不必要的模块
+1. 在IDE中可以通过一条命令在Blender上运行插件的测试, 支持代码热更新，保存代码后可以立即在Blender中看到变化
 1. 一条命令将插件打包成一个安装包，方便用户安装，打包工具自动检测插件的依赖关系，自动打包插件所需的依赖文件
-1. 提供了一个支持多个插件同时开发的框架，方便插件开发者进行跨插件的功能复用
 1. 提供了常用的插件开发工具，比如自动加载类的auto_load工具，提供国际化翻译的i18n工具，方便新手开发者进行高水平插件开发
 
 欢迎观看我们的中文视频教程：
+
 - [B站](https://www.bilibili.com/video/BV1Gn4y1d7Bp)
 - [YouTube](https://www.youtube.com/watch?v=Pjf7wg3IzDE&list=PLPkz3Ny42tJtxzw7xVUWvLI3FwEeETVOj&index=1&t=5s)
 
