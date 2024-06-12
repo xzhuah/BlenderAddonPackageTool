@@ -43,7 +43,7 @@ Avoid relative imports, such as `from .config import __addon_name__`.
 This project depends on the `addons` folder; do not rename this folder.
 
 Do not define classes in the `__init__.py` file of an add-on. The `__init__.py` file is copied to the root directory of
-the add-on when packaging the framework, which may result in classes being registered multiple times. To avoid this
+the add-on when packaging the framework, which may result in classes being misused. To avoid this
 issue, define classes in other files and import them in the `__init__.py` file as needed.
 
 ## Usage
@@ -136,7 +136,7 @@ Blender 版本 >= 2.93
 
 注意项目依赖addons文件夹，请勿更改这个文件夹的名称。
 
-请不要在插件的__init__.py文件中定义类，__init__.py文件在框架打包时会被复制到插件的根目录，可能会导致插件的类被重复注册。
+请不要在插件的__init__.py文件中定义类，__init__.py文件在框架打包时会被复制到插件的根目录，可能会导致插件中包含重复的类导致意外情况。
 为避免这个问题，请将插件的类定义到其他文件中，然后在需要时在__init__.py文件中导入这些类。
 
 ## 使用说明
