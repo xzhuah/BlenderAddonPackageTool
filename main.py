@@ -55,13 +55,15 @@ IGNORE_FILES = [".idea", "venv", "main.py", "release.py", "test.py", "create.py"
                 ".git", ".gitignore",
                 "README.md", ]
 
+PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
+
 # The default release dir. Must not within the current workspace
 # 插件发布的默认目录，不能在当前工作空间内
-DEFAULT_RELEASE_DIR = "../addon_release/"
+DEFAULT_RELEASE_DIR = os.path.join(PROJECT_ROOT, "../addon_release/")
 
 # The default test release dir. Must not within the current workspace
 # 测试插件发布的默认目录，不能在当前工作空间内
-TEST_RELEASE_DIR = "../addon_test/"
+TEST_RELEASE_DIR = os.path.join(PROJECT_ROOT, "../addon_test/")
 
 addon_namespace_pattern = re.compile("^[a-zA-Z]+[a-zA-Z0-9_]*$")
 
@@ -70,25 +72,32 @@ import_module_pattern = re.compile("from ([a-zA-Z0-9_.]+) import (.+)")
 
 __addon_md5__signature__ = "addon.txt"
 
+# 默认使用的插件模板 不要轻易修改
+_ADDON_TEMPLATE = "sample_addon"
+
+_ADDONS_FOLDER = "addons"
+ADDON_ROOT = os.path.join(PROJECT_ROOT, _ADDONS_FOLDER)
+
 install_if_missing("watchdog")
 install_fake_bpy(BLENDER_EXE_PATH)
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-from common.io.FileManagerClient import read_utf8, write_utf8, get_md5_folder
+from common.io.FileManagerClient import read_utf8, write_utf8, get_md5_folder, is_subdirectory
 from common.io.FileManagerClient import search_files
 
 
-def new_addon(addon_name):
-    if os.path.exists(f"./addons/{addon_name}") or not bool(addon_namespace_pattern.match(addon_name)):
+def new_addon(addon_name: str):
+    new_addon_path = os.path.join(ADDON_ROOT, addon_name)
+    if os.path.exists(new_addon_path) or not bool(addon_namespace_pattern.match(addon_name)):
         print("InValid addon_name:", addon_name, "Please name it as a python package name")
         return
-    shutil.copytree("./addons/sample_addon", f"./addons/{addon_name}")
+    shutil.copytree(os.path.join(ADDON_ROOT, _ADDON_TEMPLATE), new_addon_path)
 
-    all_py_file = search_files(f"./addons/{addon_name}", {".py"})
+    all_py_file = search_files(new_addon_path, {".py"})
     for py_file in all_py_file:
-        content = read_utf8(py_file).replace("sample_addon", addon_name)
+        content = read_utf8(py_file).replace(_ADDON_TEMPLATE, addon_name)
         write_utf8(py_file, content)
 
 
@@ -100,12 +109,12 @@ def test_addon(addon_name, enable_watch=True):
 def get_init_file_path(addon_name):
     # addon_name is the name defined in addon's config.py
     target_init_file = None
-    for folder in os.listdir("./addons"):
-        config_file = os.path.join("./addons", folder, "config.py")
+    for folder in os.listdir(ADDON_ROOT):
+        config_file = os.path.join(ADDON_ROOT, folder, "config.py")
         if os.path.exists(config_file):
             content = read_utf8(config_file).replace(" ", "")
             if f"__addon_name__=\"{addon_name}\"" in content:
-                target_init_file = os.path.join("./addons", folder, "__init__.py")
+                target_init_file = os.path.join(ADDON_ROOT, folder, "__init__.py")
                 break
     assert target_init_file is not None and os.path.exists(
         target_init_file), f"Addon {addon_name} not found, please make sure config.py and __init__.py is correctly set for your addon."
@@ -205,6 +214,12 @@ def start_test(init_file, addon_name, enable_watch=True):
 
 
 def release_addon(target_init_file, addon_name, with_timestamp=False, release_dir=DEFAULT_RELEASE_DIR, need_zip=True):
+    # if release dir is under PROJECT_ROOT, it's not allowed
+    if is_subdirectory(release_dir, PROJECT_ROOT):
+        # 不要将插件发布目录设置在当前项目内
+        raise ValueError("Invalid release dir:", release_dir,
+                         "Please set a release/test dir outside the current workspace")
+
     if not bool(addon_namespace_pattern.match(addon_name)):
         print("InValid addon_name:", addon_name, "Please name it as a python package name")
         return
@@ -221,7 +236,7 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
     os.mkdir(release_folder)
 
     # copy useful file to the release dir
-    for f in listdir("./"):
+    for f in listdir(PROJECT_ROOT):
         if f not in IGNORE_FILES:
             # if file created time is not later than the timestamp
             if isfile(f):
@@ -255,7 +270,8 @@ def remove_unnecessary_modules(release_folder, addon_original_package_name):
     un_visited_py_file = []
     visited_py_file = set()
 
-    all_addon_py_files = search_files(os.path.join(release_folder, "addons", addon_original_package_name), {".py"})
+    all_addon_py_files = search_files(os.path.join(release_folder, _ADDONS_FOLDER, addon_original_package_name),
+                                      {".py"})
     un_visited_py_file.append(add_on_entry_py)
     un_visited_py_file.extend(all_addon_py_files)
 
@@ -276,7 +292,7 @@ def remove_unnecessary_modules(release_folder, addon_original_package_name):
 
     removed_path = 1
     while removed_path > 0:
-        removed_path = remove_empty_folders(release_folder)
+        removed_path = remove_empty_folders(release_folder, addon_original_package_name)
 
 
 # pyc files are auto generated, need to be removed before release
@@ -323,16 +339,26 @@ def get_necessary_py_file_path(root_folder: str, py_file_path: str, all_py_modul
     return necessary_py_files
 
 
-def remove_empty_folders(root_path):
+def remove_empty_folders(root_path, addon_original_package_name):
     all_folder_to_remove = []
     for root, dirnames, filenames in os.walk(root_path, topdown=False):
         for dirname in dirnames:
             dir_to_check = os.path.join(root, dirname)
-            if not os.listdir(dir_to_check):
+            if is_empty_folder(dir_to_check, root_path, addon_original_package_name):
                 all_folder_to_remove.append(dir_to_check)
     for folder in all_folder_to_remove:
-        os.removedirs(folder)
+        shutil.rmtree(folder)
     return len(all_folder_to_remove)
+
+
+def is_empty_folder(dir_to_check, root_path, addon_original_package_name) -> bool:
+    if not os.listdir(dir_to_check):
+        return True
+    # treat folder with python files as non empty
+    if len(search_files(dir_to_check, {".py"})) > 0:
+        return False
+    # treat folder without py file and is not in the addon package as empty
+    return not is_subdirectory(dir_to_check, os.path.join(root_path, _ADDONS_FOLDER, addon_original_package_name))
 
 
 # Zip the folder in a way that blender can recognize it as an addon.
@@ -385,7 +411,7 @@ class FileUpdateHandler(FileSystemEventHandler):
 
 
 def start_watch_for_update(init_file, addon_name, stop_event: threading.Event):
-    path = "."
+    path = PROJECT_ROOT
     event_handler = FileUpdateHandler()
     observer = Observer()
     observer.schedule(event_handler, path, recursive=True)

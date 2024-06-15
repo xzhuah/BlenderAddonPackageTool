@@ -15,6 +15,13 @@ def get_all_subfolder(folder_path: str) -> list:
     return [f for f in listdir(folder_path) if isdir(join(folder_path, f))]
 
 
+# return true if path_a is a subdirectory under path_b
+def is_subdirectory(path_a, path_b) -> bool:
+    path_a = os.path.abspath(path_a)
+    path_b = os.path.abspath(path_b)
+    return os.path.commonpath([path_b]) == os.path.commonpath([path_a, path_b])
+
+
 def is_filename_postfix_in(filename: str, target_set: set):
     if target_set is None or len(target_set) == 0:
         return True
