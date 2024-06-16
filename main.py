@@ -49,10 +49,6 @@ BLENDER_ADDON_PATH = default_blender_addon_path(BLENDER_EXE_PATH)
 # BLENDER_ADDON_PATH = "C:/software/general/Blender/Blender3.5/3.5/scripts/addons/"
 
 # The files to be ignored when release the addon
-# 发布插件时要忽略的文件
-IGNORE_FILES = [".idea", "venv", "main.py", "release.py", "test.py", "create.py", "requirements.txt",
-                ".git", ".gitignore",
-                "README.md", ]
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
@@ -67,7 +63,7 @@ TEST_RELEASE_DIR = os.path.join(PROJECT_ROOT, "../addon_test/")
 addon_namespace_pattern = re.compile("^[a-zA-Z]+[a-zA-Z0-9_]*$")
 
 # The framework use this pattern to find the import module within the workspace
-import_module_pattern = re.compile("from ([a-zA-Z0-9_.]+) import (.+)")
+import_module_pattern = re.compile("from ([a-zA-Z_][a-zA-Z0-9_.]*) import (.+)")
 
 __addon_md5__signature__ = "addon.txt"
 
@@ -310,27 +306,50 @@ def find_imported_modules(file_path):
 
 
 def resolve_module_path(module_name, base_path, project_root):
-    if module_name.startswith('.'):
-        # Handle relative import
-        parts = module_name.split('.')
-        depth = len(parts) - 1
-        base_dir = os.path.dirname(base_path)
-        for _ in range(depth):
-            base_dir = os.path.dirname(base_dir)
-        module_name = parts[-1]
-        module_path = os.path.join(base_dir, module_name) if module_name else base_dir
-    else:
+    if not module_name.endswith(".*"):
+        # Handle import all
         module_path = module_name.replace('.', '/')
         module_path = os.path.join(project_root, module_path)
-
-    if os.path.isdir(module_path):
-        module_path = os.path.join(module_path, '__init__.py')
+        if os.path.isdir(module_path):
+            module_path = os.path.join(module_path, '__init__.py')
+            return [module_path]
+        elif os.path.isfile(module_path + '.py'):
+            module_path = module_path + '.py'
+            return [module_path]
+        else:
+            current_search_dir = os.path.dirname(base_path)
+            while is_subdirectory(current_search_dir, project_root):
+                module_path = module_name.replace('.', '/')
+                module_path = os.path.join(current_search_dir, module_path)
+                if os.path.isdir(module_path):
+                    module_path = os.path.join(module_path, '__init__.py')
+                    return [module_path]
+                elif os.path.isfile(module_path + '.py'):
+                    module_path = module_path + '.py'
+                    return [module_path]
+                current_search_dir = os.path.dirname(current_search_dir)
+            return []
     else:
-        module_path = module_path + '.py'
-
-    if os.path.isfile(module_path):
-        return module_path
-    return None
+        module_name = module_name[:-2]
+        module_path = module_name.replace('.', '/')
+        possible_root_path = os.path.join(project_root, module_path)
+        if os.path.isdir(possible_root_path):
+            # 返回文件夹中所有py文件
+            return search_files(possible_root_path, {".py"})
+        elif os.path.isfile(module_path + '.py'):
+            module_path = module_path + '.py'
+            return [module_path]
+        else:
+            current_search_dir = os.path.dirname(base_path)
+            while is_subdirectory(current_search_dir, project_root):
+                possible_root_path = os.path.join(current_search_dir, module_path)
+                if os.path.isdir(module_path):
+                    return search_files(possible_root_path, {".py"})
+                elif os.path.isfile(module_path + '.py'):
+                    module_path = module_path + '.py'
+                    return [module_path]
+                current_search_dir = os.path.dirname(current_search_dir)
+            return []
 
 
 def find_all_dependencies(file_paths: list, project_root: str):
@@ -351,17 +370,18 @@ def find_all_dependencies(file_paths: list, project_root: str):
         except SyntaxError as e:
             raise SyntaxError(f"Syntax error in file {current_file}: {e}")
 
-        potential_init_file = os.path.abspath(os.path.join(os.path.dirname(current_file), '__init__.py'))
-        if os.path.exists(potential_init_file) and potential_init_file not in processed:
-            to_process.append(potential_init_file)
-            dependencies.add(potential_init_file)
+        # potential_init_file = os.path.abspath(os.path.join(os.path.dirname(current_file), '__init__.py'))
+        # if os.path.exists(potential_init_file) and potential_init_file not in processed:
+        #     to_process.append(potential_init_file)
+        #     dependencies.add(potential_init_file)
 
         for module in imported_modules:
             module_path = resolve_module_path(module, current_file, project_root)
-            if module_path:
-                module_path = os.path.abspath(module_path)
-                if module_path not in processed:
-                    to_process.append(module_path)
+            if len(module_path) > 0:
+                for each_module_path in module_path:
+                    each_module_path = os.path.abspath(each_module_path)
+                    if each_module_path not in processed:
+                        to_process.append(each_module_path)
 
     return dependencies
 
