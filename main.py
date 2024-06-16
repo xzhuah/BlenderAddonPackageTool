@@ -299,10 +299,9 @@ def find_imported_modules(file_path):
         elif isinstance(node, ast.ImportFrom):
             if node.module:
                 module_name = node.module
-                for alias in node.names:
-                    imported_modules.add(f"{module_name}.{alias.name}")
-            elif node.level > 0:  # Handle relative imports
-                imported_modules.add('.' * node.level)
+                imported_modules.add(module_name)
+            for alias in node.names:
+                imported_modules.add(alias.name)
 
     return imported_modules
 
