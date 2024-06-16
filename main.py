@@ -301,7 +301,10 @@ def find_imported_modules(file_path):
                 module_name = node.module
                 imported_modules.add(module_name)
             for alias in node.names:
-                imported_modules.add(alias.name)
+                if node.module:
+                    imported_modules.add(f"{node.module}.{alias.name}")
+                else:
+                    imported_modules.add(alias.name)
 
     return imported_modules
 
