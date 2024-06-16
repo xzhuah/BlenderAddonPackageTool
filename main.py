@@ -334,20 +334,22 @@ def resolve_module_path(module_name, base_path, project_root):
         module_path = module_name.replace('.', '/')
         possible_root_path = os.path.join(project_root, module_path)
         if os.path.isdir(possible_root_path):
-            # 返回文件夹中所有py文件
-            return search_files(possible_root_path, {".py"})
-        elif os.path.isfile(module_path + '.py'):
-            module_path = module_path + '.py'
-            return [module_path]
+            possible_root_path = os.path.join(possible_root_path, '__init__.py')
+            return [possible_root_path]
+        elif os.path.isfile(possible_root_path + '.py'):
+            possible_root_path = possible_root_path + '.py'
+            return [possible_root_path]
         else:
             current_search_dir = os.path.dirname(base_path)
             while is_subdirectory(current_search_dir, project_root):
+
                 possible_root_path = os.path.join(current_search_dir, module_path)
-                if os.path.isdir(module_path):
-                    return search_files(possible_root_path, {".py"})
-                elif os.path.isfile(module_path + '.py'):
-                    module_path = module_path + '.py'
-                    return [module_path]
+                if os.path.isdir(possible_root_path):
+                    possible_root_path = os.path.join(possible_root_path, '__init__.py')
+                    return [possible_root_path]
+                elif os.path.isfile(possible_root_path + '.py'):
+                    possible_root_path = possible_root_path + '.py'
+                    return [possible_root_path]
                 current_search_dir = os.path.dirname(current_search_dir)
             return []
 
