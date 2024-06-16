@@ -359,6 +359,7 @@ def find_all_dependencies(file_paths: list, project_root: str):
         for module in imported_modules:
             module_path = resolve_module_path(module, current_file, project_root)
             if module_path:
+                module_path = os.path.abspath(module_path)
                 if module_path not in processed:
                     to_process.append(module_path)
 
