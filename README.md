@@ -36,9 +36,8 @@ Blender Version >= 2.93
 
 Each add-on, while adhering to the basic structure of a Blender add-on, should include a `config.py` file to configure
 the add-on's package name, ensuring it doesn't conflict with other add-ons.
-When importing dependencies, always use the full package name, such
-as `from addons.sample_addon.config import __addon_name__`.
-Avoid relative imports, such as `from .config import __addon_name__`.
+When importing dependencies, avoid using relative imports in __init__.py files, this file is copied to the root
+directory so the path may change.
 
 This project depends on the `addons` folder; do not rename this folder.
 
@@ -132,7 +131,7 @@ Blender 版本 >= 2.93
 
 每个插件在符合Blender插件的结构基础上，需要有一个config.py文件用于配置插件的包名，避免与其他插件冲突。
 在导入依赖时需要书写完整包名，比如 `from addons.sample_addon.config import __addon_name__`
-避免使用相对路径导入，比如 `from .config import __addon_name__`
+避免在__init__文件中使用相对路径导入，比如 `from .config import __addon_name__`，__init__文件在打包时会被复制到插件的根目录，会导致路径变换
 
 注意项目依赖addons文件夹，请勿更改这个文件夹的名称。
 
