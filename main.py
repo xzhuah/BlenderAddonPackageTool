@@ -359,8 +359,6 @@ def find_all_dependencies(file_paths: list, project_root: str):
             if module_path:
                 if module_path not in processed:
                     to_process.append(module_path)
-            else:
-                print(f"Warning: Module {module} in {current_file} cannot be resolved.")
 
     return dependencies
 
