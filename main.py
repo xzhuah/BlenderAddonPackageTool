@@ -298,7 +298,9 @@ def find_imported_modules(file_path):
                 imported_modules.add(alias.name)
         elif isinstance(node, ast.ImportFrom):
             if node.module:
-                imported_modules.add(node.module)
+                module_name = node.module
+                for alias in node.names:
+                    imported_modules.add(f"{module_name}.{alias.name}")
             elif node.level > 0:  # Handle relative imports
                 imported_modules.add('.' * node.level)
 
@@ -313,7 +315,8 @@ def resolve_module_path(module_name, base_path, project_root):
         base_dir = os.path.dirname(base_path)
         for _ in range(depth):
             base_dir = os.path.dirname(base_dir)
-        module_path = os.path.join(base_dir, parts[-1]) if parts[-1] else base_dir
+        module_name = parts[-1]
+        module_path = os.path.join(base_dir, module_name) if module_name else base_dir
     else:
         module_path = module_name.replace('.', '/')
         module_path = os.path.join(project_root, module_path)
@@ -334,22 +337,30 @@ def find_all_dependencies(file_paths: list, project_root: str):
     processed = set()
 
     while to_process:
-        current_file = to_process.pop()
+        current_file = os.path.abspath(to_process.pop())
         if current_file in processed:
             continue
 
         processed.add(current_file)
         dependencies.add(current_file)
-        potential_init_file = os.path.join(os.path.dirname(current_file), '__init__.py')
+
+        try:
+            imported_modules = find_imported_modules(current_file)
+        except SyntaxError as e:
+            raise SyntaxError(f"Syntax error in file {current_file}: {e}")
+
+        potential_init_file = os.path.abspath(os.path.join(os.path.dirname(current_file), '__init__.py'))
         if os.path.exists(potential_init_file) and potential_init_file not in processed:
-            processed.add(potential_init_file)
+            to_process.append(potential_init_file)
             dependencies.add(potential_init_file)
 
-        imported_modules = find_imported_modules(current_file)
         for module in imported_modules:
             module_path = resolve_module_path(module, current_file, project_root)
-            if module_path and module_path not in processed:
-                to_process.append(module_path)
+            if module_path:
+                if module_path not in processed:
+                    to_process.append(module_path)
+            else:
+                print(f"Warning: Module {module} in {current_file} cannot be resolved.")
 
     return dependencies
 
