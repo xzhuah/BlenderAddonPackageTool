@@ -317,6 +317,9 @@ def resolve_module_path(module_name, base_path, project_root):
             module_path = module_path + '.py'
             return [module_path]
         else:
+            if "." not in module_name:
+                # most likely a standard library module
+                return []
             current_search_dir = os.path.dirname(base_path)
             while is_subdirectory(current_search_dir, project_root):
                 module_path = module_name.replace('.', '/')
