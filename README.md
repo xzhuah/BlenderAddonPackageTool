@@ -1,19 +1,20 @@
 # Blender Add-on Development Framework and Packaging Tool
 
-This project provides a lightweight framework for developing Blender add-ons and a packaging tool. The main
+This project provides a lightweight, easy-to-use framework for developing and packaging Blender addons. The main
 features include:
 
 1. A single command to create a template add-on, facilitating quick development.
-   1The framework is designed for developing multiple addon in one project, it allows you to reuse functions across
+1. Support developing multiple addons in one project, which allows you to reuse functions across
    different addons, and helps you package only necessary modules into the zip file.
 1. Allows you to run and test your add-on in Blender with a single command. Support hot swap
-   for code changes. You can see the changes in Blender immediately after saving the code.
-1. A single command to package the add-on into an installable package, making it easier for users to install. The
-   packaging tool automatically detects and includes any dependencies required by the add-on.
-1. Handy development tools, like an auto-load utility for automatic class loading and an internationalization (i18n)
-   tool, to assist even new developers in creating high-quality add-ons.
+   for code updates. You can see the updates in Blender immediately after saving the code.
+1. A single command to package the add-on into an installable addon package, making it easier for users to install. The
+   packaging tool automatically detects and includes dependencies needed for the add-on within your project. (Not including 3rd party libraries)
+1. Provide utility functions for basic development, like an auto-load utility for automatic class loading and an internationalization (i18n)
+   tool, to help new developers creating high-quality addons.
 
-Install the following external library to use this project in an IDE:
+The following external library will be installed automatically when you run the framework code, you can also install them
+manually:
 
 - https://github.com/nutti/fake-bpy-module
 - https://github.com/gorakhargosh/watchdog
@@ -95,10 +96,10 @@ issue, define classes in other files and import them in the `__init__.py` file a
 
 本项目是一个轻量级的Blender插件开发框架和打包工具. 主要功能包括：
 
-1. 一条命令创建一个模版插件插件，方便进行快速开发
-1. 本框架设计用于在一个项目中开发多个插件，可以让你在不同的插件之间复用函数功能，它自动检测模块之间的依赖关系，帮助你将相关联的模块打包到zip文件中，而不包含不必要的模块
+1. 一条命令创建模版插件，方便进行快速开发
+1. 支持在一个项目中开发多个插件，可以让你在不同的插件之间复用函数功能，它可以自动检测功能模块之间的依赖关系，将相关联的模块打包到zip文件中，而不包含不必要的模块
 1. 在IDE中可以通过一条命令在Blender上运行插件的测试, 支持代码热更新，保存代码后可以立即在Blender中看到变化
-1. 一条命令将插件打包成一个安装包，方便用户安装，打包工具自动检测插件的依赖关系，自动打包插件所需的依赖文件
+1. 一条命令将插件打包成一个安装包，方便用户安装，打包工具自动检测插件的依赖关系，自动打包插件所需的依赖文件(不包括引用的外部库)
 1. 提供了常用的插件开发工具，比如自动加载类的auto_load工具，提供国际化翻译的i18n工具，方便新手开发者进行高水平插件开发
 
 欢迎观看我们的中文视频教程：
@@ -106,7 +107,7 @@ issue, define classes in other files and import them in the `__init__.py` file a
 - [B站](https://www.bilibili.com/video/BV1Gn4y1d7Bp)
 - [YouTube](https://www.youtube.com/watch?v=Pjf7wg3IzDE&list=PLPkz3Ny42tJtxzw7xVUWvLI3FwEeETVOj&index=1&t=5s)
 
-请安装以下外部库以便在IDE中使用本项目：
+下外部库会在框架代码运行时自动安装，你也可以手动安装它们：
 
 - https://github.com/nutti/fake-bpy-module
 - https://github.com/gorakhargosh/watchdog
