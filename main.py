@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import ast
 import atexit
 import os
 import re
@@ -27,11 +28,12 @@ import shutil
 import subprocess
 import threading
 import time
-import ast
 from datetime import datetime
 from pathlib import Path
 
 from common.class_loader.module_installer import install_if_missing, install_fake_bpy, default_blender_addon_path
+from common.io.FileManagerClient import read_utf8, write_utf8, get_md5_folder, is_subdirectory
+from common.io.FileManagerClient import search_files
 
 # The name of current active addon to be created, tested or released
 # 要创建、测试或发布的当前活动插件的名称
@@ -78,9 +80,6 @@ install_fake_bpy(BLENDER_EXE_PATH)
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-
-from common.io.FileManagerClient import read_utf8, write_utf8, get_md5_folder, is_subdirectory
-from common.io.FileManagerClient import search_files
 
 
 def new_addon(addon_name: str):
@@ -245,10 +244,11 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
 
     enhance_import_for_py_files(release_folder)
 
-    real_addon_name = "{addon_name}_{timestamp}".format(addon_name=release_folder,
-                                                        timestamp=datetime.now().strftime(
-                                                            "%Y%m%d_%H%M%S")) if with_timestamp else "{addon_name}".format(
-        addon_name=release_folder)
+    real_addon_name = ("{addon_name}_{timestamp}"
+                       .format(addon_name=release_folder,
+                               timestamp=datetime.now().strftime(
+                                   "%Y%m%d_%H%M%S"))) if with_timestamp else ("{addon_name}"
+                                                                              .format(addon_name=release_folder))
 
     released_addon_path = os.path.abspath(os.path.join(release_dir, real_addon_name) + ".zip")
     # zip the addon
@@ -452,7 +452,8 @@ def start_watch_for_update(init_file, addon_name, stop_event: threading.Event):
                 except Exception as e:
                     print(e)
                     print(
-                        "Addon updated failed: Please make sure no other process is using the addon folder. You might need to restart the test to update the addon in Blender.")
+                        "Addon updated failed: Please make sure no other process is"
+                        " using the addon folder. You might need to restart the test to update the addon in Blender.")
         print("Stop watching for update...")
 
     except KeyboardInterrupt:
