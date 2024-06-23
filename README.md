@@ -13,6 +13,8 @@ features include:
 1. Provide utility functions for basic development, like an auto-load utility for automatic class loading and an internationalization (i18n)
    tool, to help new developers creating high-quality addons.
 
+You can check out an overview about this framework on YouTube: https://youtu.be/udPBrXJZT1g
+
 The following external library will be installed automatically when you run the framework code, you can also install them
 manually:
 
