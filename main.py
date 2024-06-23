@@ -212,6 +212,12 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
         shutil.rmtree(release_folder)
     os.mkdir(release_folder)
     shutil.copyfile(target_init_file, os.path.join(release_folder, "__init__.py"))
+    # 将target_init_file同级的其他非py文件复制到发布目录 如 toml xml等可能跟插件有关的配置文件
+    for file in os.listdir(os.path.dirname(target_init_file)):
+        file_path = os.path.join(os.path.dirname(target_init_file), file)
+        if os.path.isdir(file_path) or file.endswith(".py"):
+            continue
+        shutil.copy(file_path, release_folder)
 
     # 将插件文件夹复制到发布目录
     shutil.copytree(os.path.join(ADDON_ROOT, addon_name), os.path.join(release_folder, _ADDONS_FOLDER, addon_name))
