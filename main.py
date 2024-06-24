@@ -62,6 +62,8 @@ addon_namespace_pattern = re.compile("^[a-zA-Z]+[a-zA-Z0-9_]*$")
 import_module_pattern = re.compile("from ([a-zA-Z_][a-zA-Z0-9_.]*) import (.+)")
 
 __addon_md5__signature__ = "addon.txt"
+ADDON_MANIFEST_FILE = "blender_manifest.toml"
+WHEELS_PATH = "wheels"
 
 # 默认使用的插件模板 不要轻易修改
 _ADDON_TEMPLATE = "sample_addon"
@@ -75,6 +77,12 @@ install_fake_bpy(BLENDER_EXE_PATH)
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
+try:
+    import tomllib
+except ImportError:
+    install_if_missing("toml")
+    import toml
+
 
 def new_addon(addon_name: str):
     new_addon_path = os.path.join(ADDON_ROOT, addon_name)
@@ -82,8 +90,8 @@ def new_addon(addon_name: str):
         raise ValueError("Invalid addon name: " + addon_name + " Please name it as a python package name")
     shutil.copytree(os.path.join(ADDON_ROOT, _ADDON_TEMPLATE), new_addon_path)
 
-    all_py_file = search_files(new_addon_path, {".py"})
-    for py_file in all_py_file:
+    all_template_file = search_files(new_addon_path, {".py", ".toml"})
+    for py_file in all_template_file:
         content = read_utf8(py_file).replace(_ADDON_TEMPLATE, addon_name)
         write_utf8(py_file, content)
 
@@ -243,6 +251,27 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
         removed_path = remove_empty_folders(release_folder)
 
     enhance_import_for_py_files(release_folder)
+
+    # include wheel files when need to be zipped
+    if need_zip:
+        addon_config_file = os.path.join(ADDON_ROOT, addon_name, ADDON_MANIFEST_FILE)
+        if os.path.exists(addon_config_file):
+            with open(addon_config_file, 'r', encoding='utf-8') as f:
+                try:
+                    addon_config = tomllib.loads(f.read())
+                except Exception as e:
+                    addon_config = toml.load(f)
+                if "wheels" in addon_config:
+                    wheel_files = addon_config["wheels"]
+                    if len(wheel_files) > 0:
+                        wheel_folder = os.path.join(release_folder, WHEELS_PATH)
+                        os.mkdir(wheel_folder)
+                        for wheel_file in wheel_files:
+                            wheel_source = os.path.join(PROJECT_ROOT, wheel_file)
+                            if not os.path.exists(wheel_source):
+                                raise ValueError("Wheel file not found:", wheel_source,
+                                                 ". Please download the required wheel file to the wheels folder.")
+                            shutil.copy(wheel_source, wheel_folder)
 
     real_addon_name = ("{addon_name}_{timestamp}"
                        .format(addon_name=release_folder,
