@@ -95,7 +95,7 @@ def get_framework_classes(modules):
     base_types = get_framework_base_classes()
     all_framework_classes = set()
     for cls in get_classes_in_modules(modules):
-        if any(base in base_types for base in cls.__bases__):
+        if any(base in base_types for base in cls.__mro__[1:]):
             all_framework_classes.add(cls)
     return all_framework_classes
 
@@ -112,6 +112,7 @@ def get_register_deps_dict(modules):
 
 def iter_my_register_deps(cls, my_classes, my_classes_by_idname):
     yield from iter_my_deps_from_annotations(cls, my_classes)
+    yield from iter_my_deps_from_inheritance(cls, my_classes)
     yield from iter_my_deps_from_parent_id(cls, my_classes_by_idname)
 
 
@@ -121,6 +122,12 @@ def iter_my_deps_from_annotations(cls, my_classes):
         if dependency is not None:
             if dependency in my_classes:
                 yield dependency
+
+
+def iter_my_deps_from_inheritance(cls, my_classes):
+    for base_cls in cls.__mro__[1:]:
+        if base_cls in my_classes:
+            yield base_cls
 
 
 def get_dependency_from_annotation(value):
@@ -135,7 +142,7 @@ def get_dependency_from_annotation(value):
 
 
 def iter_my_deps_from_parent_id(cls, my_classes_by_idname):
-    if bpy.types.Panel in cls.__bases__:
+    if bpy.types.Panel in cls.__mro__[1:]:
         parent_idname = getattr(cls, "bl_parent_id", None)
         if parent_idname is not None:
             parent_cls = my_classes_by_idname.get(parent_idname)
@@ -146,7 +153,7 @@ def iter_my_deps_from_parent_id(cls, my_classes_by_idname):
 def iter_my_classes(modules):
     base_types = get_register_base_types()
     for cls in get_classes_in_modules(modules):
-        if any(base in base_types for base in cls.__bases__):
+        if any(base in base_types for base in cls.__mro__[1:]):
             if not getattr(cls, "is_registered", False):
                 yield cls
 
