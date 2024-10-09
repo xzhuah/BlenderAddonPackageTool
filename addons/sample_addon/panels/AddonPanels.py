@@ -30,4 +30,4 @@ class ExampleAddonPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context: bpy.types.Context):
-        return context.active_object is not None
+        return True
