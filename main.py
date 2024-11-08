@@ -190,7 +190,7 @@ def start_test(init_file, addon_name, enable_watch=True):
                                                                          __addon_md5__signature__).replace("\\", "/"))
 
     try:
-        subprocess.call([BLENDER_EXE_PATH, "--python-expr", python_script])
+        subprocess.call([BLENDER_EXE_PATH, "--python-use-system-env", "--python-expr", python_script])
     finally:
         exit_handler()
 
