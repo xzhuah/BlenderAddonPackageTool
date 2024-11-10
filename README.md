@@ -1,5 +1,17 @@
 # Blender Add-on Development Framework and Packaging Tool
 
+### Demo 1: Auto-update while developing 开发过程支持自动更新
+
+![Demo1](https://github.com/xzhuah/demo_resource/blob/main/blender_addon_tool_demo1.gif)
+
+### Demo 2: Built-in I18n solution 内置字典翻译方案
+
+![Demo2](https://github.com/xzhuah/demo_resource/blob/main/blender_addon_tool_demo2.gif)
+
+### Demo 3: Load Blender Component class like Operation, Panel etc automatically 自动加载Blender组件类(Operation, Panel等)
+
+![Demo2](https://github.com/xzhuah/demo_resource/blob/main/blender_addon_tool_demo3.gif)
+
 This project provides a lightweight, easy-to-use framework for developing and packaging Blender addons. The main
 features include:
 
