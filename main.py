@@ -20,6 +20,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import threading
 import time
 from datetime import datetime
@@ -165,9 +166,9 @@ def start_test(init_file, addon_name, enable_watch=True):
 
         atexit.register(exit_handler)
         try:
-            subprocess.call(
+            execute_blender_script(
                 [BLENDER_EXE_PATH, "--python-use-system-env", "--python-expr",
-                 f"import bpy\nbpy.ops.preferences.addon_enable(module=\"{addon_name}\")"])
+                 f"import bpy\nbpy.ops.preferences.addon_enable(module=\"{addon_name}\")"], test_addon_path)
         finally:
             exit_handler()
         return
@@ -190,9 +191,25 @@ def start_test(init_file, addon_name, enable_watch=True):
                                                                          __addon_md5__signature__).replace("\\", "/"))
 
     try:
-        subprocess.call([BLENDER_EXE_PATH, "--python-use-system-env", "--python-expr", python_script])
+        execute_blender_script([BLENDER_EXE_PATH, "--python-use-system-env", "--python-expr", python_script],
+                               test_addon_path)
     finally:
         exit_handler()
+
+
+def execute_blender_script(args, addon_path):
+    process = subprocess.Popen(args, stderr=subprocess.PIPE, text=True)
+    try:
+        for line in process.stderr:
+            line: str
+            if line.lstrip().startswith("File"):
+                line = line.replace(addon_path, PROJECT_ROOT)
+            sys.stderr.write(line)
+    except KeyboardInterrupt:
+        sys.stderr.write("interrupted, terminating the child process...\n")
+    finally:
+        process.terminate()
+        process.wait()
 
 
 def release_addon(target_init_file, addon_name, with_timestamp=False, release_dir=DEFAULT_RELEASE_DIR, need_zip=True):
