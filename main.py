@@ -157,7 +157,7 @@ bpy.app.handlers.load_post.append(register_watch_update_tick)
 
 def start_test(init_file, addon_name, enable_watch=True):
     update_addon_for_test(init_file, addon_name)
-    test_addon_path = os.path.join(BLENDER_ADDON_PATH, addon_name)
+    test_addon_path = os.path.normpath(os.path.join(BLENDER_ADDON_PATH, addon_name))
 
     if not enable_watch:
         def exit_handler():
