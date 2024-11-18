@@ -36,7 +36,7 @@ ACTIVE_ADDON = "sample_addon"
 
 # The path of the blender executable. Blender2.93 is the minimum version required
 # Blender可执行文件的路径，Blender2.93是所需的最低版本
-BLENDER_EXE_PATH = "C:/software/general/Blender/goo-engine-4.1.0/goo-engine-main/blender.exe"
+BLENDER_EXE_PATH = "C:/software/general/Blender/Blender3.5/blender.exe"
 
 # The path of the blender addon folder
 # Blender插件文件夹的路径
