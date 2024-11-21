@@ -8,4 +8,8 @@ addon_name_to_create = ACTIVE_ADDON
 # addon_name_to_create = "new_addon"
 
 if __name__ == '__main__':
-    new_addon(addon_name_to_create)
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('addon', default=ACTIVE_ADDON, nargs='?', help='addon name')
+    args = parser.parse_args()
+    new_addon(args.addon)
