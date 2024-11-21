@@ -8,4 +8,16 @@ addon_name_to_release = ACTIVE_ADDON
 # addon_name_to_release = "new_addon"
 
 if __name__ == '__main__':
-    release_addon(get_init_file_path(addon_name_to_release), addon_name_to_release)
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('addon', default=ACTIVE_ADDON, nargs='?', help='addon name')
+    parser.add_argument('--need_zip', default=True, action='store_true', help='need zip package')
+    parser.add_argument('--with_version', default=False, action='store_true', help='append version')
+    parser.add_argument('--with_timestamp', default=False, action='store_true', help='append timestamp')
+    args = parser.parse_args()
+    release_addon(target_init_file = get_init_file_path(args.addon), 
+                  addon_name = addon_name_to_release,
+                  need_zip= args.need_zip,
+                  with_timestamp = args.with_timestamp,
+                  with_version = args.with_version,
+                )

@@ -212,7 +212,7 @@ def execute_blender_script(args, addon_path):
         process.wait()
 
 
-def release_addon(target_init_file, addon_name, with_timestamp=False, release_dir=DEFAULT_RELEASE_DIR, need_zip=True):
+def release_addon(target_init_file, addon_name, with_timestamp=False, release_dir=DEFAULT_RELEASE_DIR, need_zip=True, with_version=False):
     # if release dir is under PROJECT_ROOT, it's not allowed
     if is_subdirectory(release_dir, PROJECT_ROOT):
         # 不要将插件发布目录设置在当前项目内
@@ -290,11 +290,15 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
                                                  ". Please download the required wheel file to the wheels folder.")
                             shutil.copy(wheel_source, wheel_folder)
 
-    real_addon_name = ("{addon_name}_{timestamp}"
-                       .format(addon_name=release_folder,
-                               timestamp=datetime.now().strftime(
-                                   "%Y%m%d_%H%M%S"))) if with_timestamp else ("{addon_name}"
-                                                                              .format(addon_name=release_folder))
+    real_addon_name = "{addon_name}".format(addon_name=release_folder)
+    if with_version:
+        bl_info = get_addon_info(target_init_file)
+        _version = '.'.join([str(x) for x in bl_info['version']])
+        real_addon_name = f"{release_folder}_V{_version}"
+    if with_timestamp:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        real_addon_name = f"{real_addon_name}_{timestamp}"
+
 
     released_addon_path = os.path.abspath(os.path.join(release_dir, real_addon_name) + ".zip")
     # zip the addon
@@ -304,7 +308,22 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
 
     return released_addon_path
 
+def get_addon_info(filename):
+    with open(filename, encoding='utf8') as h:
+        file_content = h.read()
+        # match bl_info content in [addon]/__init__.py
+        bl_info_pattern = r'bl_info\s*=\s*{(.+?)}\s*'
 
+        match = re.search(bl_info_pattern, file_content, re.DOTALL)
+        
+        if match:
+            bl_info_content = match.group(1).strip()
+            bl_info_dict = eval('{' + bl_info_content + '}')
+            return bl_info_dict
+        else:
+            print("bl_info not found in the file.")
+            return None
+        
 # pyc files are auto generated, need to be removed before release
 def remove_pyc_files(release_folder: str):
     all_pyc_file = search_files(release_folder, {"pyc"})
