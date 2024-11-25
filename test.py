@@ -8,4 +8,8 @@ addon_name_to_test = ACTIVE_ADDON
 # addon_name_to_test = "new_addon"
 
 if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('addon', default=addon_name_to_test, nargs='?', help='addon name')
+    args = parser.parse_args()
     test_addon(addon_name_to_test, enable_watch=True)
