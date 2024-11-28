@@ -293,7 +293,11 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
     real_addon_name = "{addon_name}".format(addon_name=release_folder)
     if with_version:
         bl_info = get_addon_info(target_init_file)
-        _version = '.'.join([str(x) for x in bl_info['version']])
+        if bl_info is not None:
+            _version = '.'.join([str(x) for x in bl_info['version']])
+        else:
+            _version = 'None'
+            print("fetch version info failed, set version to 'None' ")
         real_addon_name = f"{release_folder}_V{_version}"
     if with_timestamp:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
