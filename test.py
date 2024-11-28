@@ -10,6 +10,7 @@ addon_name_to_test = ACTIVE_ADDON
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('addon', default=addon_name_to_test, nargs='?', help='addon name')
+    parser.add_argument('addon', default=ACTIVE_ADDON, nargs='?', help='addon name')
+    parser.add_argument('--disable_watch', default=False, action='store_true', help='disable zip package')
     args = parser.parse_args()
-    test_addon(addon_name_to_test, enable_watch=True)
+    test_addon(addon_name_to_test, enable_watch = not args.disable_watch)
