@@ -1,4 +1,5 @@
-from main import new_addon, ACTIVE_ADDON
+from framework import new_addon
+from main import ACTIVE_ADDON
 
 # 创建前请修改以下参数
 
@@ -7,6 +8,7 @@ from main import new_addon, ACTIVE_ADDON
 
 if __name__ == '__main__':
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument('addon', default=ACTIVE_ADDON, nargs='?', help='addon name')
     args = parser.parse_args()

@@ -32,7 +32,7 @@ def install_if_missing(package):
 
 def extract_blender_version(blender_exe_path: str):
     folder_path = os.path.dirname(blender_exe_path)
-    for version in ["4.2", "4.1", "4.0", "3.6", "3.5", "3.4", "3.3", "3.2", "3.1", "3.0", "2.93"]:
+    for version in ["4.4", "4.3", "4.2", "4.1", "4.0", "3.6", "3.5", "3.4", "3.3", "3.2", "3.1", "3.0", "2.93"]:
         if os.path.exists(os.path.join(folder_path, version)):
             return version
     pattern = r'\d+\.?\d+'
