@@ -25,10 +25,19 @@ import threading
 import time
 from datetime import datetime
 from pathlib import Path
+from configparser import ConfigParser
 
 from common.class_loader.module_installer import install_if_missing, install_fake_bpy, default_blender_addon_path
 from common.io.FileManagerClient import read_utf8, write_utf8, get_md5_folder, is_subdirectory
 from common.io.FileManagerClient import search_files
+
+# The files to be ignored when release the addon
+PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
+
+CONFIG_FILEPATH = os.path.join(PROJECT_ROOT, 'config.ini')
+configParser = ConfigParser()
+if os.path.isfile(CONFIG_FILEPATH):
+    configParser.read(CONFIG_FILEPATH)
 
 # The name of current active addon to be created, tested or released
 # 要创建、测试或发布的当前活动插件的名称
@@ -38,6 +47,9 @@ ACTIVE_ADDON = "sample_addon"
 # Blender可执行文件的路径，Blender2.93是所需的最低版本
 BLENDER_EXE_PATH = "C:/software/general/Blender/Blender3.5/blender.exe"
 
+if configParser.has_option('blender', 'exe_path'):
+    BLENDER_EXE_PATH = configParser.get('blender', 'exe_path')
+
 # The path of the blender addon folder
 # Blender插件文件夹的路径
 BLENDER_ADDON_PATH = default_blender_addon_path(BLENDER_EXE_PATH)
@@ -45,9 +57,6 @@ BLENDER_ADDON_PATH = default_blender_addon_path(BLENDER_EXE_PATH)
 # 您可以通过手动设置路径来覆盖默认插件安装路径
 # BLENDER_ADDON_PATH = "C:/software/general/Blender/Blender3.5/3.5/scripts/addons/"
 
-# The files to be ignored when release the addon
-
-PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
 # The default release dir. Must not within the current workspace
 # 插件发布的默认目录，不能在当前工作空间内
@@ -56,6 +65,21 @@ DEFAULT_RELEASE_DIR = os.path.join(PROJECT_ROOT, "../addon_release/")
 # The default test release dir. Must not within the current workspace
 # 测试插件发布的默认目录，不能在当前工作空间内
 TEST_RELEASE_DIR = os.path.join(PROJECT_ROOT, "../addon_test/")
+
+# 若存在config.ini则从其中中读取配置
+
+
+if configParser.has_option('blender', 'addon_path') and configParser.get('blender', 'addon_path'):
+    BLENDER_ADDON_PATH = configParser.get('blender', 'addon_path')
+
+if configParser.has_option('default', 'addon') and configParser.get('default', 'addon'):
+    ACTIVE_ADDON = configParser.get('default', 'addon')
+
+if configParser.has_option('default', 'release_dir') and configParser.get('default', 'release_dir'):
+    DEFAULT_RELEASE_DIR = configParser.get('default', 'release_dir')
+
+if configParser.has_option('default', 'test_release_dir') and configParser.get('default', 'test_release_dir'):
+    TEST_RELEASE_DIR = configParser.get('default', 'test_release_dir')
 
 addon_namespace_pattern = re.compile("^[a-zA-Z]+[a-zA-Z0-9_]*$")
 
@@ -99,6 +123,8 @@ def new_addon(addon_name: str):
 
 def test_addon(addon_name, enable_watch=True):
     init_file = get_init_file_path(addon_name)
+    if not enable_watch:
+        print('Do not auto reload addon when file changed')
     start_test(init_file, addon_name, enable_watch=enable_watch)
 
 
@@ -212,7 +238,7 @@ def execute_blender_script(args, addon_path):
         process.wait()
 
 
-def release_addon(target_init_file, addon_name, with_timestamp=False, release_dir=DEFAULT_RELEASE_DIR, need_zip=True):
+def release_addon(target_init_file, addon_name, with_timestamp=False, release_dir=DEFAULT_RELEASE_DIR, need_zip=True, with_version=False):
     # if release dir is under PROJECT_ROOT, it's not allowed
     if is_subdirectory(release_dir, PROJECT_ROOT):
         # 不要将插件发布目录设置在当前项目内
@@ -290,11 +316,19 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
                                                  ". Please download the required wheel file to the wheels folder.")
                             shutil.copy(wheel_source, wheel_folder)
 
-    real_addon_name = ("{addon_name}_{timestamp}"
-                       .format(addon_name=release_folder,
-                               timestamp=datetime.now().strftime(
-                                   "%Y%m%d_%H%M%S"))) if with_timestamp else ("{addon_name}"
-                                                                              .format(addon_name=release_folder))
+    real_addon_name = "{addon_name}".format(addon_name=release_folder)
+    if with_version:
+        bl_info = get_addon_info(target_init_file)
+        if bl_info is not None:
+            _version = '.'.join([str(x) for x in bl_info['version']])
+        else:
+            _version = 'None'
+            print("fetch version info failed, set version to 'None' ")
+        real_addon_name = f"{release_folder}_V{_version}"
+    if with_timestamp:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        real_addon_name = f"{real_addon_name}_{timestamp}"
+
 
     released_addon_path = os.path.abspath(os.path.join(release_dir, real_addon_name) + ".zip")
     # zip the addon
@@ -304,7 +338,21 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
 
     return released_addon_path
 
+def get_addon_info(filename:str):
+    file_content = read_utf8(filename)
+    # match bl_info content in [addon]/__init__.py
+    bl_info_pattern = r'bl_info\s*=\s*{(.+?)}\s*'
 
+    match = re.search(bl_info_pattern, file_content, re.DOTALL)
+    
+    if match:
+        bl_info_content = match.group(1).strip()
+        bl_info_dict = eval('{' + bl_info_content + '}')
+        return bl_info_dict
+    else:
+        print("bl_info not found in the file.")
+        return None
+        
 # pyc files are auto generated, need to be removed before release
 def remove_pyc_files(release_folder: str):
     all_pyc_file = search_files(release_folder, {"pyc"})
