@@ -37,7 +37,7 @@ PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 CONFIG_FILEPATH = os.path.join(PROJECT_ROOT, 'config.ini')
 configParser = ConfigParser()
 if os.path.isfile(CONFIG_FILEPATH):
-    configParser.read(CONFIG_FILEPATH)
+    configParser.read(CONFIG_FILEPATH, encoding='utf-8')
 
 # The name of current active addon to be created, tested or released
 # 要创建、测试或发布的当前活动插件的名称
@@ -111,7 +111,9 @@ except ImportError:
 
 def new_addon(addon_name: str):
     new_addon_path = os.path.join(ADDON_ROOT, addon_name)
-    if os.path.exists(new_addon_path) or not bool(addon_namespace_pattern.match(addon_name)):
+    if os.path.exists(new_addon_path):
+        raise ValueError("Addon already exists: " + addon_name)
+    if not bool(addon_namespace_pattern.match(addon_name)):
         raise ValueError("Invalid addon name: " + addon_name + " Please name it as a python package name")
     shutil.copytree(os.path.join(ADDON_ROOT, _ADDON_TEMPLATE), new_addon_path)
 
@@ -249,7 +251,7 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
         raise ValueError("InValid addon_name:", addon_name, "Please name it as a python package name")
 
     if not os.path.isdir(release_dir):
-        os.mkdir(release_dir)
+        Path(release_dir).mkdir(parents=True, exist_ok=True)
 
     # remove the folder if already exists
     release_folder = os.path.join(release_dir, addon_name)
@@ -378,8 +380,7 @@ def zip_folder(target_root, output_zip_file):
 
 
 def find_imported_modules(file_path):
-    with open(file_path, 'r', encoding='utf-8') as file:
-        root = ast.parse(file.read(), filename=file_path)
+    root = ast.parse(read_utf8(file_path), filename=file_path)
 
     imported_modules = set()
     for node in ast.walk(root):

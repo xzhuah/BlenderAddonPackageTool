@@ -91,6 +91,31 @@ issue, define classes in other files and import them in the `__init__.py` file a
    specify the ID of the native UI component you want to extend using `target_id` and specify whether to append or
    prepend using `expand_mode`.
 
+## Add Optional Configuration File
+To avoid having to modify the configuration items in `main.py` every time you update the framework, you can create a
+`config.ini` file in the root directory of your project to store your configuration information. This file will override
+the configuration information in `main.py`.
+
+Here is an example of a `config.ini` file:
+
+```ini
+[blender]
+; path to the blender executable
+exe_path = C:/software/general/Blender/Blender3.5/blender.exe
+; exe_path = C:/software/general/Blender/Blender3.6/blender.exe
+
+[default]
+; name of the addon to be created, tested and released
+addon = sample_addon
+; path to the addon directory, testing addon will be temporarily installed here
+; usually you don't need to configure this since it can be derived from the exe_path
+addon_path = C:/software/general/Blender/Blender3.5/scripts/addons/
+; the path to store released addon zip files
+release_dir = C:/path/to/release/dir
+; the path to store addon files used for testing, during testing, the framework will first release the addon to here and copy it to Blender's addon directory
+test_release_dir = C:/path/to/test/release/dir
+```
+
 ## Contributions
 
 1. Framework Updates: If you are using this framework in your project and need to migrate to a newer version, you will
@@ -175,6 +200,31 @@ Blender 版本 >= 2.93
 1. 你可以使用common/types/framework.py中的ExpandableUi类来方便的扩展Blender原生的菜单，面板，饼菜单，标题栏等UI组件,
    只需继承该类并实现draw方法，你可以通过target_id来指定需要扩展的原生UI组件的ID,
    通过expand_mode来指定向前还是向后扩展。
+
+## 添加可选的配置文件
+
+为了避免每次更新框架时需要重新修改main.py中的配置，你可以在项目的根目录下创建一个config.ini文件，用于存放你的配置信息，
+这个文件会覆盖main.py中的配置信息。
+
+以下是一个config.ini文件的示例：
+
+```ini
+[blender]
+; Blender的可执行文件路径
+exe_path = C:/software/general/Blender/Blender3.5/blender.exe
+; exe_path = C:/software/general/Blender/Blender3.6/blender.exe
+
+[default]
+; 创建、测试和发布的目标插件名称
+addon = sample_addon
+; 插件目录路径，测试时插件将被临时安装到这里
+; 通常不需要配置此项，因为框架可以通过exe_path的路径推导出来
+addon_path = C:/software/general/Blender/Blender3.5/scripts/addons/
+; 发布插件zip文件的存放路径
+release_dir = C:/path/to/release/dir
+; 用于测试时插件文件的临时存放路径，测试是框架首先会发布插件到这里，然后再复制到Blender的插件目录
+test_release_dir = C:/path/to/test/release/dir
+```
 
 ## 框架在以下方面可进一步完善，欢迎贡献意见和代码
 
