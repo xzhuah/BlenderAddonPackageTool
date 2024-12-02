@@ -1,4 +1,4 @@
-from common.class_loader.auto_load import preprocess_dictionary
+from ....common.class_loader.auto_load import preprocess_dictionary
 
 dictionary = {
     "zh_CN": {

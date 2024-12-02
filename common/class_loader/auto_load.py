@@ -15,7 +15,7 @@ __all__ = (
     "remove_properties",
 )
 
-from common.types.framework import ExpandableUi
+from ..types.framework import ExpandableUi, is_extension
 
 blender_version = bpy.app.version
 
@@ -66,12 +66,16 @@ def unregister():
 #################################################
 
 def get_all_submodules(directory):
-    return list(iter_submodules(directory, directory.name))
+    return list(iter_submodules(directory))
 
 
-def iter_submodules(path, package_name):
+def iter_submodules(path):
+    import_as_extension = is_extension()
     for name in sorted(iter_submodule_names(path)):
-        yield importlib.import_module("." + name, package_name)
+        if import_as_extension:
+            yield importlib.import_module("..." + name, __package__)
+        else:
+            yield importlib.import_module("." + name, path.name)
 
 
 def iter_submodule_names(path, root=""):

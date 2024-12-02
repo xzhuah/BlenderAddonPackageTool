@@ -1,6 +1,6 @@
 # How to include Python wheels for addons starting from Blender 4.2
 
-Please read https://docs.blender.org/manual/en/4.2/extensions/python_wheels.html for context.
+Please read https://docs.blender.org/manual/en/latest/advanced/extensions/python_wheels.html for context.
 
 To bundle Python wheels with your addon, you need to download to this `wheels` directory.
 And In blender_manifest.toml include the wheels as a list of paths, e.g.:
@@ -13,7 +13,8 @@ wheels = [
 ]
 ```
 
-When you release your addon, the framework will copy these wheels into the zip file.
+When you release your addon, the framework will copy these wheels into the zip file according to the toml configuration.
+This way you don't have to maintain wheels in your addon directory which could lead to duplication.
 
 Noticed that when testing your addon, the framework will not automatically include these wheels to avoid
 overhead. You might see `ModuleNotFoundError` when testing your addon even though you have included the wheels in the
@@ -26,7 +27,7 @@ developing.
 
 # 如何给Blender 4.2及以后的插件添加 Python wheels
 
-请参考 https://docs.blender.org/manual/en/4.2/extensions/python_wheels.html 了解背景知识。
+请参考 https://docs.blender.org/manual/en/latest/advanced/extensions/python_wheels.html 了解背景知识。
 
 给插件添加 Python wheels ,你需要将.whl文件下载到这个 `wheels` 文件夹中.
 并且在插件配置文件 blender_manifest.toml 中声明插件所需的whl文件路径，例如:
@@ -39,7 +40,7 @@ wheels = [
 ]
 ```
 
-当你打包插件时，框架会将这些whl文件复制到zip文件中。
+当你打包插件时，框架会根据toml将这些whl文件复制到zip文件中。因此你不需要在插件的目录中存放这些whl文件导致重复。
 
 注意，当你测试插件时，框架不会自动包含这些whl文件以避免额外的开销。你可能会在测试插件时看到 `ModuleNotFoundError`
 错误，即使你已经在项目中包含了这些whl文件。

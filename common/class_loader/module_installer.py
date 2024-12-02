@@ -1,6 +1,6 @@
 import importlib.metadata
 import importlib.util
-import os.path
+import os
 import re
 import subprocess
 import sys

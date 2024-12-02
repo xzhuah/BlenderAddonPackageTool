@@ -1,6 +1,6 @@
 common_dictionary = {
     "zh_CN": {
-        ("*", "translation"): "翻译",
+        # ("*", "translation"): "翻译",
     }
 }
 

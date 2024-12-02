@@ -26,6 +26,8 @@ features include:
 1. Provide utility functions for basic development, like an auto-load utility for automatic class loading and an
    internationalization (i18n)
    tool, to help new developers creating high-quality addons.
+1. Support extension development in Blender 4.2 and later versions. You can choose to package your addon
+   as a legacy addon or as an extension by setting the IS_EXTENSION configuration
 
 You can check out an overview about this framework on YouTube: https://youtu.be/udPBrXJZT1g
 
@@ -55,8 +57,6 @@ Blender Version >= 2.93
 
 Each add-on, while adhering to the basic structure of a Blender add-on, should include a `config.py` file to configure
 the add-on's package name, ensuring it doesn't conflict with other add-ons.
-When importing dependencies, avoid using relative imports in __init__.py files, this file is copied to the root
-directory so the path may change.
 
 This project depends on the `addons` folder; do not rename this folder.
 
@@ -90,6 +90,9 @@ issue, define classes in other files and import them in the `__init__.py` file a
    file in the `i18n` folder of your add-on.
 1. You can define RNA properties declaratively. Just follow the examples in the `__init__.py` file to add your RNA
    properties. The framework will automatically register and unregister your RNA properties.
+1. You can choose to package your addon as a legacy addon or as an extension in Blender 4.2 and later versions. Just set
+   the `IS_EXTENSION` configuration to switch between the two. The framework will convert absolute import to relative import for you when releasing.
+   Notice only `from XXX.XXX import XXX` is supported, `import XXX.XX` is not supported for converting to relative import.
 1. You can use the `ExpandableUi` class in `common/types/framework.py` to easily extend Blender's native UI components,
    such as menus, panels, pie menus, and headers. Just inherit from this class and implement the `draw` method. You can
    specify the ID of the native UI component you want to extend using `target_id` and specify whether to append or
@@ -112,6 +115,8 @@ exe_path = C:/software/general/Blender/Blender3.5/blender.exe
 [default]
 ; name of the addon to be created, tested and released
 addon = sample_addon
+; Whether the addon is an extension, if True, the addon will be packaged when released.
+is_extension = False
 ; path to the addon directory, testing addon will be temporarily installed here
 ; usually you don't need to configure this since it can be derived from the exe_path
 addon_path = C:/software/general/Blender/Blender3.5/scripts/addons/
@@ -146,6 +151,9 @@ test_release_dir = C:/path/to/test/release/dir
 1. 一条命令将插件打包成一个安装包，方便用户安装，打包工具自动检测插件的依赖关系，自动打包插件所需的依赖文件(
    不包括引用的外部库)
 1. 提供了常用的插件开发工具，比如自动加载类的auto_load工具，提供国际化翻译的i18n工具，方便新手开发者进行高水平插件开发
+1. 你可以选择将你的插件打包成传统插件或者扩展插件，只需要设置IS_EXTENSION配置即可切换，框架会在打包时自动将绝对导入转换为相对导入
+   注意只支持`from XXX.XXX import XXX`这种形式的转换，`import XXX.XX`这种形式的导入不支持转换为相对导入
+1. 兼容Blender 4.2及以后版本的扩展开发，你可以选择将你的插件打包成传统插件或者扩展插件，只需要设置IS_EXTENSION配置即可切换
 
 欢迎观看我们的中文视频教程：
 
@@ -178,8 +186,6 @@ test_release_dir = C:/path/to/test/release/dir
 Blender 版本 >= 2.93
 
 每个插件在符合Blender插件的结构基础上，需要有一个config.py文件用于配置插件的包名，避免与其他插件冲突。
-在导入依赖时需要书写完整包名，比如 `from addons.sample_addon.config import __addon_name__`
-避免在__init__文件中使用相对路径导入，比如 `from .config import __addon_name__`，__init__文件在打包时会被复制到插件的根目录，会导致路径变换
 
 注意项目依赖addons文件夹，请勿更改这个文件夹的名称。
 
@@ -225,6 +231,8 @@ exe_path = C:/software/general/Blender/Blender3.5/blender.exe
 [default]
 ; 创建、测试和发布的目标插件名称
 addon = sample_addon
+; 插件是否为扩展，如果为True，则插件在发布时会被打包成扩展的形式
+; is_extension = False
 ; 插件目录路径，测试时插件将被临时安装到这里
 ; 通常不需要配置此项，因为框架可以通过exe_path的路径推导出来
 addon_path = C:/software/general/Blender/Blender3.5/scripts/addons/

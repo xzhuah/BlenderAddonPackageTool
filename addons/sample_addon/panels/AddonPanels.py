@@ -1,8 +1,8 @@
 import bpy
 
-from addons.sample_addon.config import __addon_name__
-from addons.sample_addon.operators.AddonOperators import ExampleOperator
-from common.i18n.i18n import i18n
+from ..config import __addon_name__
+from ..operators.AddonOperators import ExampleOperator
+from ....common.i18n.i18n import i18n
 
 
 class ExampleAddonPanel(bpy.types.Panel):

@@ -1,7 +1,6 @@
 import bpy
-
-from addons.sample_addon.config import __addon_name__
-from addons.sample_addon.preference.AddonPreferences import ExampleAddonPreferences
+from ..config import __addon_name__
+from ..preference.AddonPreferences import ExampleAddonPreferences
 
 
 # This Example Operator will scale up the selected object

@@ -3,7 +3,7 @@ import bpy
 # Get the language code when addon start up
 __language_code__ = bpy.context.preferences.view.language
 
-from common.i18n.dictionary import common_dictionary
+from .dictionary import common_dictionary
 
 __dictionary__ = common_dictionary
 

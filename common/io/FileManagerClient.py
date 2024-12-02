@@ -1,18 +1,17 @@
 import hashlib
 import os
 from os import listdir
-from os.path import isfile, isdir, join
 
 
 def get_all_filename(folder_path: str) -> list:
     if os.path.exists(folder_path):
-        return [f for f in listdir(folder_path) if isfile(join(folder_path, f))]
+        return [f for f in listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
     else:
         return []
 
 
 def get_all_subfolder(folder_path: str) -> list:
-    return [f for f in listdir(folder_path) if isdir(join(folder_path, f))]
+    return [f for f in listdir(folder_path) if os.path.isdir(os.path.join(folder_path, f))]
 
 
 # return true if path_a is a subdirectory under path_b
@@ -63,6 +62,16 @@ def read_utf8(filepath: str) -> str:
         return f.read()
 
 
+def read_utf8_in_lines(filepath: str) -> list[str]:
+    with open(filepath, mode="r", encoding="utf-8") as f:
+        return f.readlines()
+
+
 def write_utf8(filepath: str, content: str):
     with open(filepath, encoding="utf-8", mode="w") as f:
         f.write(content)
+
+
+def write_utf8_in_lines(filepath: str, content: list[str]):
+    with open(filepath, encoding="utf-8", mode="w") as f:
+        f.writelines(content)

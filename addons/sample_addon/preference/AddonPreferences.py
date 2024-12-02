@@ -4,7 +4,7 @@ import bpy
 from bpy.props import StringProperty, IntProperty, BoolProperty
 from bpy.types import AddonPreferences
 
-from addons.sample_addon.config import __addon_name__
+from ..config import __addon_name__
 
 
 class ExampleAddonPreferences(AddonPreferences):

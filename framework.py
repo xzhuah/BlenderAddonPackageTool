@@ -11,8 +11,9 @@ from datetime import datetime
 from pathlib import Path
 
 from common.class_loader.module_installer import install_if_missing, install_fake_bpy
-from common.io.FileManagerClient import search_files, read_utf8, write_utf8, is_subdirectory, get_md5_folder
-from main import PROJECT_ROOT, BLENDER_ADDON_PATH, BLENDER_EXE_PATH, DEFAULT_RELEASE_DIR, TEST_RELEASE_DIR
+from common.io.FileManagerClient import search_files, read_utf8, write_utf8, is_subdirectory, get_md5_folder, \
+    read_utf8_in_lines, write_utf8_in_lines
+from main import PROJECT_ROOT, BLENDER_ADDON_PATH, BLENDER_EXE_PATH, DEFAULT_RELEASE_DIR, TEST_RELEASE_DIR, IS_EXTENSION
 
 install_if_missing("watchdog")
 from watchdog.events import FileSystemEventHandler
@@ -28,6 +29,8 @@ except ImportError:
 # the framework itself. Do not change them unless you know what you are doing.
 _addon_namespace_pattern = re.compile("^[a-zA-Z]+[a-zA-Z0-9_]*$")
 _import_module_pattern = re.compile("from ([a-zA-Z_][a-zA-Z0-9_.]*) import (.+)")
+_relative_import_pattern = re.compile(r'^\s*(from\s+(\.+))(.*)$')
+_absolute_import_pattern = re.compile(r'^\s*from\s+(\w+[\w.]*)\s+import\s+(.*)$')
 _addon_md5__signature = "addon.txt"
 _ADDON_MANIFEST_FILE = "blender_manifest.toml"
 _WHEELS_PATH = "wheels"
@@ -66,6 +69,7 @@ def get_init_file_path(addon_name):
     if not os.path.exists(target_init_file_path):
         raise ValueError(f"Release failed: Addon {addon_name} not found.")
     return target_init_file_path
+
 
 # The following code will be injected into the blender python environment to enable hot reload
 # https://devtalk.blender.org/t/plugin-hot-reload-by-cleaning-sys-modules/20040
@@ -155,6 +159,10 @@ def start_test(init_file, addon_name, enable_watch=True):
         exit_handler()
 
 
+# This is the only corner case need to handle
+_addon_on_init_file = os.path.abspath(os.path.join(PROJECT_ROOT, "__init__.py"))
+
+
 def execute_blender_script(args, addon_path):
     process = subprocess.Popen(args, stderr=subprocess.PIPE, text=True, encoding="utf-8")
     try:
@@ -162,6 +170,10 @@ def execute_blender_script(args, addon_path):
             line: str
             if line.lstrip().startswith("File"):
                 line = line.replace(addon_path, PROJECT_ROOT)
+            if _addon_on_init_file in line:
+                addon_name = os.path.basename(addon_path)
+                real_addon_init_file = os.path.abspath(os.path.join(_ADDON_ROOT, addon_name, "__init__.py"))
+                line = line.replace(_addon_on_init_file, real_addon_init_file)
             sys.stderr.write(line)
     except KeyboardInterrupt:
         sys.stderr.write("interrupted, terminating the child process...\n")
@@ -180,6 +192,15 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
 
     if not bool(_addon_namespace_pattern.match(addon_name)):
         raise ValueError("InValid addon_name:", addon_name, "Please name it as a python package name")
+
+    if IS_EXTENSION:
+        print(
+            "Release as extension, please make sure you are using an updated version of config.py and not referring "
+            "bl_info in register/unregister method of addon's __init__.py")
+        # make sure toml file exists
+        addon_config_file = os.path.join(_ADDON_ROOT, addon_name, _ADDON_MANIFEST_FILE)
+        if not os.path.isfile(addon_config_file):
+            raise ValueError("Extension config file not found:", addon_config_file)
 
     if not os.path.isdir(release_dir):
         Path(release_dir).mkdir(parents=True, exist_ok=True)
@@ -226,12 +247,24 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
     while removed_path > 0:
         removed_path = remove_empty_folders(release_folder)
 
+    # 必须先将绝对导入转换为相对导入，否则enhance_import_for_py_files一步会改变绝对导入的路径导致出错
+    # convert absolute import to relative import if it's an extension
+    if IS_EXTENSION:
+        for py_file in search_files(release_folder, {".py"}):
+            convert_absolute_to_relative(py_file, release_folder)
+
+    # 更新打包后的绝对导入路径：由于打包后文件夹的层级关系发生了变化，需要更新打包后的绝对导入路径
     enhance_import_for_py_files(release_folder)
+
+    # enhance relative import for root __init__.py
+    enhance_relative_import_for_init_py(os.path.join(release_folder, "__init__.py"),
+                                        _ADDONS_FOLDER, addon_name)
 
     # include wheel files when need to be zipped
     if need_zip:
         addon_config_file = os.path.join(_ADDON_ROOT, addon_name, _ADDON_MANIFEST_FILE)
-        if os.path.exists(addon_config_file):
+        # package whl files into extension
+        if os.path.exists(addon_config_file) and IS_EXTENSION:
             with open(addon_config_file, 'r', encoding='utf-8') as f:
                 try:
                     addon_config = tomllib.loads(f.read())
@@ -243,6 +276,9 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
                         wheel_folder = os.path.join(release_folder, _WHEELS_PATH)
                         os.mkdir(wheel_folder)
                         for wheel_file in wheel_files:
+                            # You much put the .whl file directly under the wheels folder, not in a subfolder
+                            # 你必须将.whl文件直接放在wheels文件夹下，而不是在子文件夹中
+                            assert wheel_file.startswith("./wheels/") and wheel_file.count("/") == 2
                             wheel_source = os.path.join(PROJECT_ROOT, wheel_file)
                             if not os.path.exists(wheel_source):
                                 raise ValueError("Wheel file not found:", wheel_source,
@@ -308,7 +344,10 @@ def remove_empty_folders(root_path):
 
 # Zip the folder in a way that blender can recognize it as an addon.
 def zip_folder(target_root, output_zip_file):
-    shutil.make_archive(output_zip_file, 'zip', Path(target_root).parent, base_dir=os.path.basename(target_root))
+    if IS_EXTENSION:
+        shutil.make_archive(output_zip_file, 'zip', Path(target_root))
+    else:
+        shutil.make_archive(output_zip_file, 'zip', Path(target_root).parent, base_dir=os.path.basename(target_root))
 
 
 def find_imported_modules(file_path):
@@ -328,7 +367,6 @@ def find_imported_modules(file_path):
                     imported_modules.add(f"{node.module}.{alias.name}")
                 else:
                     imported_modules.add(alias.name)
-
     return imported_modules
 
 
@@ -346,7 +384,17 @@ def resolve_module_path(module_name, base_path, project_root):
         else:
             if "." not in module_name:
                 # most likely a standard library module
-                return []
+                # 有一种可能是相对导入 from . import xxx, from .. import xxx 等
+                # 这种情况下需要根据当前文件的路径来解析 看module_name.py是否存在于当前文件的同级目录或者父级目录
+                # 从base_path开始向上查找，直到找到module_name.py或者到达project_root
+                search_path = os.path.dirname(base_path)
+                potential_result = []
+                while is_subdirectory(search_path, project_root):
+                    possible_path = os.path.join(search_path, module_name + '.py')
+                    if os.path.isfile(possible_path):
+                        potential_result.append(possible_path)
+                    search_path = os.path.dirname(search_path)
+                return potential_result
             current_search_dir = os.path.dirname(base_path)
             while is_subdirectory(current_search_dir, project_root):
                 module_path = module_name.replace('.', '/')
@@ -423,13 +471,135 @@ def enhance_import_for_py_files(addon_dir: str):
     all_py_modules = find_all_py_modules(addon_dir)
     all_py_file = search_files(addon_dir, {".py"})
     for py_file in all_py_file:
+        hasUpdated = False
         content = read_utf8(py_file)
         for module_path in _import_module_pattern.finditer(content):
             original_module_path = module_path.groups()[0]
             if original_module_path in all_py_modules:
+                hasUpdated = True
                 content = content.replace("from " + original_module_path + " import",
                                           "from " + namespace + "." + original_module_path + " import")
-        write_utf8(py_file, content)
+        if hasUpdated:
+            write_utf8(py_file, content)
+
+
+# from .abc import xxx -> from .child_path.addon_name.abc import xxx
+def enhance_relative_import_for_init_py(init_py_file_path: str, child_path: str, addon_name: str):
+    lines = read_utf8_in_lines(init_py_file_path)
+    # we moved __init__.py to the parent folder, so we need to enhance the relative import
+    updated_lines = []
+    hasUpdated = False
+    for line in lines:
+        match = _relative_import_pattern.match(line)
+        if match:
+            leading_dots = match.group(2)  # Extract the leading dots
+            rest_of_import = match.group(3).strip()  # Everything after the leading dots
+            remaining_dots_count = len(leading_dots) - 2
+
+            if remaining_dots_count > 0:
+                # Sufficient dots remain; reduce by two
+                updated_dots = '.' * remaining_dots_count
+                updated_line = line.replace(leading_dots, updated_dots, 1)
+            elif remaining_dots_count == -1:
+                # one level up
+                # No dots remain; add a leading dot
+                # 有可能是框架改动将abs import转为rel import之后导致的，必须检查对应文件是否存在 如果存在则不需要修改
+
+                if rest_of_import.startswith("import "):
+                    updated_line = line.replace(leading_dots, f".{child_path}.{addon_name}", 1)
+                else:
+                    rest_of_import = rest_of_import[:rest_of_import.index(" ")]
+                    potential_file = os.path.join(os.path.dirname(init_py_file_path),
+                                                  rest_of_import.replace(".", os.sep) + ".py")
+                    potential_module = os.path.join(os.path.dirname(init_py_file_path),
+                                                    rest_of_import.replace(".", os.sep), "__init__.py")
+                    if os.path.exists(potential_file) or os.path.exists(potential_module):
+                        updated_line = line
+                    else:
+                        updated_line = line.replace(leading_dots, f".{child_path}.{addon_name}.", 1)
+            else:
+                # Short relative imports or no need to reduce the dots
+                if rest_of_import.startswith("import "):
+                    # If rest_of_import starts with 'import', don't add a trailing dot
+                    updated_line = line.replace(leading_dots, f".{child_path}", 1)
+                else:
+                    # For nested imports, add a trailing dot
+                    updated_line = line.replace(leading_dots, f".{child_path}.", 1)
+
+            updated_lines.append(updated_line)
+            hasUpdated = True
+        else:
+            # Keep the line unchanged if no match
+            updated_lines.append(line)
+    if hasUpdated:
+        write_utf8_in_lines(init_py_file_path, updated_lines)
+
+
+def convert_absolute_to_relative(file_path: str, project_root: str):
+    """
+    Convert all absolute imports to relative imports in a Python file.
+    Notice this does not handle import like
+    import xxx.yyy.zzz as zzz
+    在开发扩展时，不要用这种方式导入项目内的模块，这种方式导入的模块无法被转换为相对导入
+
+    Args:
+        file_path (str): Path to the Python file to modify.
+        project_root (str): Root directory of the project.
+    """
+    # Normalize paths
+    file_path = os.path.abspath(file_path)
+    project_root = os.path.abspath(project_root)
+
+    lines = read_utf8_in_lines(file_path)
+
+    modified_lines = []
+    changed = False
+
+    for line in lines:
+        # help skipping expensive path check
+        stripped_line = line.strip()
+        if (not stripped_line.startswith("from ")) or stripped_line.startswith("from ."):
+            # Leave non-import lines unchanged
+            modified_lines.append(line)
+            continue
+        match = _absolute_import_pattern.match(line)
+        if match:
+            # get whitespace before the import statement
+            leading_space = line[:line.index("from")]
+            absolute_module = match.group(1)
+            import_items = match.group(2)
+            # Check if the absolute module is within the project
+            absolute_module_path = absolute_module.replace('.', os.sep)
+            full_module_path = os.path.join(project_root, absolute_module_path)
+            if os.path.exists(full_module_path) or os.path.exists(f"{full_module_path}.py"):
+                # Calculate the relative import path
+
+                target_relative_path = os.path.relpath(
+                    os.path.join(project_root, absolute_module_path),
+                    os.path.dirname(file_path)
+                )
+                # Count the levels for leading dots
+                levels_up = target_relative_path.count("..") + 1
+                leading_dots = '.' * levels_up
+
+                # Build the relative import line
+                target_relative_path = target_relative_path.strip("." + os.sep)
+                relative_import_line = leading_space + f"from {leading_dots}{target_relative_path.replace(os.sep, '.')} import {import_items}\n"
+                if relative_import_line != line:
+                    modified_lines.append(relative_import_line)
+                    changed = True
+                    continue
+            else:
+                # Leave non-matching lines unchanged
+                modified_lines.append(line)
+        else:
+            # Leave non-matching lines unchanged
+            modified_lines.append(line)
+        # print(f"not match {line} in {timer() - start3} seconds")
+
+    # Write the modified content back to the file if changes were made
+    if changed:
+        write_utf8_in_lines(file_path, modified_lines)
 
 
 def find_all_py_modules(root_dir: str) -> set:
