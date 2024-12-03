@@ -12,6 +12,8 @@
 
 ![Demo2](https://github.com/xzhuah/demo_resource/blob/main/blender_addon_tool_demo3.gif)
 
+The project has been updated to use MIT open source license since 2024.12.02.
+
 This project provides a lightweight, easy-to-use framework for developing and packaging Blender addons. The main
 features include:
 
@@ -142,6 +144,8 @@ test_release_dir = C:/path/to/test/release/dir
    must-have.
 
 # Blender 插件开发框架及打包工具
+
+本项目已于2024.12.02更新为MIT开源许可证。
 
 本项目是一个轻量级的Blender插件开发框架和打包工具. 主要功能包括：
 
