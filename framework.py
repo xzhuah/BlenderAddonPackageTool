@@ -450,10 +450,26 @@ def find_all_dependencies(file_paths: list, project_root: str):
         except SyntaxError as e:
             raise SyntaxError(f"Syntax error in file {current_file}: {e}")
 
+        # 以下代码会将除了当前目标插件文件夹以外的其他被引用的文件夹中的__init__.py文件也加入到依赖中，使之成为有效的模块，从而将其中的Blender
+        # 类也加入到自动注册的范围中，一般来说，我们引用外部文件夹的目的是复用其内部函数，而非将插件外部模块中定义的Operator，Panel等元素
+        # 直接加到当前插件中(如果需要使用其他插件的这些元素，更好的做法是将其直接存放到你的插件文件夹内)，因此注释掉，如果您有特殊需求，可以取消注释
+        # The following code will add __init__.py files in other
+        # referenced folders to the dependencies, in addition to the current ACTIVE ADDON ,making those folders valid
+        # modules and thus classes in them will be added the scope of automatic class registration. (The
+        # auto_load.py) It is commented out because usually we just want to reference reusable functions from
+        # modules outside the current addon Instead of directly adding their Operator's Panels into your own addon. (
+        # If you really want to do that, include them as sub package of your own addon would be a better option). But
+        # If you have special requirements, you can uncomment it.
+
         # potential_init_file = os.path.abspath(os.path.join(os.path.dirname(current_file), '__init__.py'))
-        # if os.path.exists(potential_init_file) and potential_init_file not in processed:
-        #     to_process.append(potential_init_file)
-        #     dependencies.add(potential_init_file)
+        # while is_subdirectory(os.path.dirname(potential_init_file),
+        #                       project_root) and potential_init_file != os.path.abspath(
+        #         os.path.join(project_root, "__init__.py")):
+        #     if os.path.exists(potential_init_file) and potential_init_file not in processed:
+        #         to_process.append(potential_init_file)
+        #         dependencies.add(potential_init_file)
+        #     potential_init_file = os.path.abspath(
+        #         os.path.join(os.path.dirname(os.path.dirname(potential_init_file)), '__init__.py'))
 
         for module in imported_modules:
             module_path = resolve_module_path(module, current_file, project_root)
