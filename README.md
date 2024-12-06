@@ -236,7 +236,7 @@ exe_path = C:/software/general/Blender/Blender3.5/blender.exe
 ; 创建、测试和发布的目标插件名称
 addon = sample_addon
 ; 插件是否为扩展，如果为True，则插件在发布时会被打包成扩展的形式
-; is_extension = False
+is_extension = False
 ; 插件目录路径，测试时插件将被临时安装到这里
 ; 通常不需要配置此项，因为框架可以通过exe_path的路径推导出来
 addon_path = C:/software/general/Blender/Blender3.5/scripts/addons/
