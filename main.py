@@ -73,4 +73,3 @@ if os.path.isfile(CONFIG_FILEPATH):
 if not BLENDER_ADDON_PATH or not os.path.exists(BLENDER_ADDON_PATH):
     raise ValueError("Blender addon path not found: " + BLENDER_ADDON_PATH, "Please set the correct path in config.ini")
 
-# The framework use this pattern to find the import module within the workspace
