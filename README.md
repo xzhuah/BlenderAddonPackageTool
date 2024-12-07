@@ -66,6 +66,33 @@ Do not define classes in the `__init__.py` file of an add-on. The `__init__.py` 
 the add-on when packaging the framework, which may result in classes being misused. To avoid this
 issue, define classes in other files and import them in the `__init__.py` file as needed.
 
+### Notice for extension developers
+
+To meet the standard
+at https://docs.blender.org/manual/en/latest/advanced/extensions/addons.html#user-preferences-and-package
+You need to follow the following instruction when using preferences in your extension addon. These instructions are also
+applicable to the legacy addon, but not enforced.
+
+Since addons developed by this framework usually have submodules. To access preferences, you must use the
+__addon_name__ defined in the config.py file as the bl_idname of the preferences.
+
+Define:
+
+```python
+class ExampleAddonPreferences(AddonPreferences):
+    bl_idname = __addon_name__
+```
+
+Access
+
+```python
+from ..config import __addon_name__
+
+addon_prefs = bpy.context.preferences.addons[__addon_name__].preferences
+# use addon_prefs
+addon_prefs.some_property
+```
+
 ## Usage
 
 1. Clone this repository.
@@ -93,8 +120,10 @@ issue, define classes in other files and import them in the `__init__.py` file a
 1. You can define RNA properties declaratively. Just follow the examples in the `__init__.py` file to add your RNA
    properties. The framework will automatically register and unregister your RNA properties.
 1. You can choose to package your addon as a legacy addon or as an extension in Blender 4.2 and later versions. Just set
-   the `IS_EXTENSION` configuration to switch between the two. The framework will convert absolute import to relative import for you when releasing.
-   Notice only `from XXX.XXX import XXX` is supported, `import XXX.XX` is not supported for converting to relative import.
+   the `IS_EXTENSION` configuration to switch between the two. The framework will convert absolute import to relative
+   import for you when releasing.
+   Notice only `from XXX.XXX import XXX` is supported, `import XXX.XX` is not supported for converting to relative
+   import.
 1. You can use the `ExpandableUi` class in `common/types/framework.py` to easily extend Blender's native UI components,
    such as menus, panels, pie menus, and headers. Just inherit from this class and implement the `draw` method. You can
    specify the ID of the native UI component you want to extend using `target_id` and specify whether to append or
@@ -195,6 +224,30 @@ Blender 版本 >= 2.93
 
 请不要在插件的__init__.py文件中定义类，__init__.py文件在框架打包时会被复制到插件的根目录，可能会导致插件中包含重复的类导致意外情况。
 为避免这个问题，请将插件的类定义到其他文件中，然后在需要时在__init__.py文件中导入这些类。
+
+### 扩展插件开发注意事项
+
+为了满足https://docs.blender.org/manual/en/latest/advanced/extensions/addons.html#user-preferences-and-package
+的要求，当你在扩展插件中定义和使用偏好设置时，你需要遵循以下要求。这些要求也适用于传统插件，但不是强制的。
+
+由于本框架开发的插件通常带有子模块，为了定义和访问插件的偏好设置，你必须使用config.py文件中定义的__addon_name__作为偏好设置的bl_idname。
+
+定义偏好设置类：
+
+```python
+class ExampleAddonPreferences(AddonPreferences):
+    bl_idname = __addon_name__
+```
+
+访问偏好设置：
+
+```python
+from ..config import __addon_name__
+
+addon_prefs = bpy.context.preferences.addons[__addon_name__].preferences
+# use addon_prefs
+addon_prefs.some_property
+```
 
 ## 使用说明
 
