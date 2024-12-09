@@ -191,6 +191,7 @@ test_release_dir = C:/path/to/test/release/dir
 欢迎观看我们的中文视频教程：
 
 - [B站](https://www.bilibili.com/video/BV1Gn4y1d7Bp)
+- [深度技术讲解](https://www.bilibili.com/video/BV1VBqcY4E6x)
 - [YouTube](https://www.youtube.com/watch?v=Pjf7wg3IzDE&list=PLPkz3Ny42tJtxzw7xVUWvLI3FwEeETVOj&index=1&t=5s)
 
 下外部库会在框架代码运行时自动安装，你也可以手动安装它们：
