@@ -17,7 +17,9 @@ if __name__ == '__main__':
                                                                                           'will convert absolute '
                                                                                           'import to relative import '
                                                                                           'for you and will take care '
-                                                                                          'of packaging the extension.')
+                                                                                          'of packaging the '
+                                                                                          'extension. Default is the '
+                                                                                          'value of IS_EXTENSION')
     parser.add_argument('--disable_zip', default=False, action='store_true', help='If true, release the addon into a '
                                                                                   'plain folder and do not zip it '
                                                                                   'into an installable package, '

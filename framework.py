@@ -290,14 +290,22 @@ def release_addon(target_init_file, addon_name,
                             shutil.copy(wheel_source, wheel_folder)
 
     real_addon_name = "{addon_name}".format(addon_name=release_folder)
+    if is_extension:
+        real_addon_name = f"{real_addon_name}_ext"
     if with_version:
-        bl_info = get_addon_info(target_init_file)
-        if bl_info is not None:
-            _version = '.'.join([str(x) for x in bl_info['version']])
+        _version: str
+        if not is_extension:
+            bl_info = get_addon_info(target_init_file)
+            if bl_info is not None:
+                _version = '.'.join([str(x) for x in bl_info['version']])
+            else:
+                raise ValueError("bl_info not found in:", target_init_file)
         else:
-            _version = 'None'
-            print("fetch version info failed, set version to 'None' ")
-        real_addon_name = f"{release_folder}_V{_version}"
+            if "version" in addon_config:
+                _version = addon_config["version"]
+            else:
+                raise ValueError("version not found in:", addon_config_file)
+        real_addon_name = f"{real_addon_name}_V{_version}"
     if with_timestamp:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         real_addon_name = f"{real_addon_name}_{timestamp}"
