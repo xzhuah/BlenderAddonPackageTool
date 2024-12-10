@@ -179,6 +179,15 @@ def execute_blender_script(args, addon_path):
         process.wait()
 
 
+def read_ext_config(addon_config_file):
+    with open(addon_config_file, 'r', encoding='utf-8') as f:
+        try:
+            addon_config = tomllib.loads(f.read())
+        except Exception as e:
+            addon_config = toml.load(f)
+    return addon_config
+
+
 def release_addon(target_init_file, addon_name,
                   release_dir=DEFAULT_RELEASE_DIR,
                   need_zip=True,
@@ -265,29 +274,26 @@ def release_addon(target_init_file, addon_name,
     #                                     _ADDONS_FOLDER, addon_name)
 
     # include wheel files when need to be zipped
+    addon_config_file = os.path.join(_ADDON_ROOT, addon_name, _ADDON_MANIFEST_FILE)
+    addon_config = {}
+    if os.path.exists(addon_config_file) and is_extension:
+        addon_config = read_ext_config(addon_config_file)
     if need_zip:
-        addon_config_file = os.path.join(_ADDON_ROOT, addon_name, _ADDON_MANIFEST_FILE)
         # package whl files into extension
-        if os.path.exists(addon_config_file) and is_extension:
-            with open(addon_config_file, 'r', encoding='utf-8') as f:
-                try:
-                    addon_config = tomllib.loads(f.read())
-                except Exception as e:
-                    addon_config = toml.load(f)
-                if "wheels" in addon_config:
-                    wheel_files = addon_config["wheels"]
-                    if len(wheel_files) > 0:
-                        wheel_folder = os.path.join(release_folder, _WHEELS_PATH)
-                        os.mkdir(wheel_folder)
-                        for wheel_file in wheel_files:
-                            # You much put the .whl file directly under the wheels folder, not in a subfolder
-                            # 你必须将.whl文件直接放在wheels文件夹下，而不是在子文件夹中
-                            assert wheel_file.startswith("./wheels/") and wheel_file.count("/") == 2
-                            wheel_source = os.path.join(PROJECT_ROOT, wheel_file)
-                            if not os.path.exists(wheel_source):
-                                raise ValueError("Wheel file not found:", wheel_source,
-                                                 ". Please download the required wheel file to the wheels folder.")
-                            shutil.copy(wheel_source, wheel_folder)
+        if "wheels" in addon_config:
+            wheel_files = addon_config["wheels"]
+            if len(wheel_files) > 0:
+                wheel_folder = os.path.join(release_folder, _WHEELS_PATH)
+                os.mkdir(wheel_folder)
+                for wheel_file in wheel_files:
+                    # You much put the .whl file directly under the wheels folder, not in a subfolder
+                    # 你必须将.whl文件直接放在wheels文件夹下，而不是在子文件夹中
+                    assert wheel_file.startswith("./wheels/") and wheel_file.count("/") == 2
+                    wheel_source = os.path.join(PROJECT_ROOT, wheel_file)
+                    if not os.path.exists(wheel_source):
+                        raise ValueError("Wheel file not found:", wheel_source,
+                                         ". Please download the required wheel file to the wheels folder.")
+                    shutil.copy(wheel_source, wheel_folder)
 
     real_addon_name = "{addon_name}".format(addon_name=release_folder)
     if is_extension:
