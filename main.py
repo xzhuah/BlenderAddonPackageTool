@@ -70,6 +70,6 @@ if os.path.isfile(CONFIG_FILEPATH):
 
 # Could not find the blender addon path, raise error. Please set BLENDER_ADDON_PATH manually.
 # 未找到Blender插件路径，引发错误 请手动设置BLENDER_ADDON_PATH
-if not BLENDER_ADDON_PATH or not os.path.exists(BLENDER_ADDON_PATH):
+if os.path.exists(BLENDER_EXE_PATH) and (not BLENDER_ADDON_PATH or not os.path.exists(BLENDER_ADDON_PATH)):
     raise ValueError("Blender addon path not found: " + BLENDER_ADDON_PATH, "Please set the correct path in config.ini")
 

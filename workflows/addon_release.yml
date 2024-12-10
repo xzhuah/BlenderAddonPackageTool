@@ -1,0 +1,69 @@
+# Put this file in the .github/workflows directory of your repository to take effect. Modify the addon name that needs to be automatically released according to your project. (At Step 3)
+# Notice you need to change your project setting: Settings -> Actions -> General -> Workflow permissions -> Read and write permission for this workflow to work.
+# 将此文件放在您的项目目录 .github/workflows 中即可生效。请根据您的项目修改需要自动发布的插件名称。(在 Step 3中)
+# 注意您需要在Github项目中 Settings -> Actions -> General -> Workflow permissions -> 为此工作流程添加读写权限才能使其正常工作。
+name: Automatic Release Addon Action
+
+on:
+  push:
+    branches:
+      - main # Change this to the branch you want to trigger the workflow, e.g., main, master, or develop
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      # Step 3: Run the release command for each addon. Please update this step according to your project.
+      - name: Run release command for sample_addon
+        run: |
+          python release.py sample_addon --with_version
+
+      #      - name: Run release command for addon1 as extension
+      #        run: |
+      #          python release.py addon1 --is_extension --with_version
+      #
+      #      - name: Run release command for addon2
+      #        run: |
+      #          python release.py addon2 --is_extension --with_version --with_timestamp
+
+      # Add additional steps for each addon as needed...
+      # You can add more steps as needed for each addon.
+
+      # Step 4: List files in addon_release directory
+      - name: List files in addon_release directory
+        run: |
+          echo "Files in addon_release directory:"
+          ls ../addon_release
+
+      # Step 5: Create GitHub Release
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: "release-${{ github.run_id }}"
+          release_name: "Release ${{ github.run_id }}"
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 6: Upload release assets
+      - name: Upload release assets
+        run: |
+          for file in ../addon_release/*.zip; do
+            echo "Uploading $file..."
+            gh release upload "release-${{ github.run_id }}" "$file"
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
