@@ -15,13 +15,11 @@ from common.io.FileManagerClient import search_files, read_utf8, write_utf8, is_
     read_utf8_in_lines, write_utf8_in_lines
 from main import PROJECT_ROOT, BLENDER_ADDON_PATH, BLENDER_EXE_PATH, DEFAULT_RELEASE_DIR, TEST_RELEASE_DIR, IS_EXTENSION
 
-install_if_missing("watchdog")
-from watchdog.events import FileSystemEventHandler
-from watchdog.observers import Observer
-
 try:
+    # added in python3.11
     import tomllib
 except ImportError:
+    # for python3.10 and below
     install_if_missing("toml")
     import toml
 
@@ -39,7 +37,10 @@ _ADDON_TEMPLATE = "sample_addon"
 _ADDONS_FOLDER = "addons"
 _ADDON_ROOT = os.path.join(PROJECT_ROOT, _ADDONS_FOLDER)
 
-install_fake_bpy(BLENDER_EXE_PATH)
+# Install fake bpy module only when user have configured the blender executable path
+# 仅在用户配置了Blender可执行文件路径时安装fake bpy模块 避免在非Blender环境下安装fake bpy模块(如CICD流程中)
+if os.path.isfile(BLENDER_EXE_PATH):
+    install_fake_bpy(BLENDER_EXE_PATH)
 
 
 def new_addon(addon_name: str):
@@ -605,21 +606,24 @@ def find_all_py_modules(root_dir: str) -> set:
     return all_py_modules
 
 
-class FileUpdateHandler(FileSystemEventHandler):
-    def __init__(self):
-        super(FileUpdateHandler, self).__init__()
-        self.has_update = False
-
-    def on_any_event(self, event):
-        source_path = event.src_path
-        if source_path.endswith(".py"):
-            self.has_update = True
-
-    def clear_update(self):
-        self.has_update = False
-
-
 def start_watch_for_update(init_file, addon_name, stop_event: threading.Event):
+    install_if_missing("watchdog")
+    from watchdog.events import FileSystemEventHandler
+    from watchdog.observers import Observer
+
+    class FileUpdateHandler(FileSystemEventHandler):
+        def __init__(self):
+            super(FileUpdateHandler, self).__init__()
+            self.has_update = False
+
+        def on_any_event(self, event):
+            source_path = event.src_path
+            if source_path.endswith(".py"):
+                self.has_update = True
+
+        def clear_update(self):
+            self.has_update = False
+
     path = PROJECT_ROOT
     event_handler = FileUpdateHandler()
     observer = Observer()
