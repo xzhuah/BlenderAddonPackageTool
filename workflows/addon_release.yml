@@ -1,6 +1,6 @@
 # Put this file in the .github/workflows directory of your repository to take effect. Modify the addon name that needs to be automatically released according to your project. (At Step 3)
 # Notice you need to change your project setting: Settings -> Actions -> General -> Workflow permissions -> Read and write permission for this workflow to work.
-# 将此文件放在您的项目目录 .github/workflows 中即可生效。请根据您的项目修改需要自动发布的插件名称。(在 Step 3中)
+# 将此文件放在您的项目目录 .github/workflows 中即可生效。请根据您的项目需要，修改自动发布的插件名称。(在 Step 3中)
 # 注意您需要在Github项目中 Settings -> Actions -> General -> Workflow permissions -> 为此工作流程添加读写权限才能使其正常工作。
 name: Automatic Release Addon Action
 
@@ -28,7 +28,7 @@ jobs:
       - name: Run release command for sample_addon
         run: |
           python release.py sample_addon --with_version
-# Add additional steps for each addon as needed... 安如下格式添加其他插件的发布命令
+# Add additional steps for each addon as needed... 按如下格式添加其他插件的发布命令
 #      - name: Run release command for addon1 as extension
 #        run: |
 #          python release.py addon1 --is_extension --with_version
