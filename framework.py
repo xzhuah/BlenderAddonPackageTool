@@ -182,7 +182,11 @@ def execute_blender_script(args, addon_path):
         process.wait()
 
 
-def release_addon(target_init_file, addon_name, with_timestamp=False, release_dir=DEFAULT_RELEASE_DIR, need_zip=True,
+def release_addon(target_init_file, addon_name,
+                  release_dir=DEFAULT_RELEASE_DIR,
+                  need_zip=True,
+                  is_extension=IS_EXTENSION,
+                  with_timestamp=False,
                   with_version=False):
     # if release dir is under PROJECT_ROOT, it's not allowed
     if is_subdirectory(release_dir, PROJECT_ROOT):
@@ -193,10 +197,11 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
     if not bool(_addon_namespace_pattern.match(addon_name)):
         raise ValueError("InValid addon_name:", addon_name, "Please name it as a python package name")
 
-    if IS_EXTENSION:
-        print(
-            "Release as extension, please make sure you are using an updated version of config.py and not referring "
-            "bl_info in register/unregister method of addon's __init__.py")
+    if is_extension:
+        # 发布为扩展时，请确保您在config.py正确的定义了__addon_name__，并且不要在插件的__init__.py中的register/unregister方法中引用bl_info
+        # print(
+        #     "Release as extension, please make sure you defined __addon_name__ correctly in config.py, and not referring "
+        #     "bl_info in register/unregister method of addon's __init__.py")
         # make sure toml file exists
         addon_config_file = os.path.join(_ADDON_ROOT, addon_name, _ADDON_MANIFEST_FILE)
         if not os.path.isfile(addon_config_file):
@@ -249,7 +254,7 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
 
     # 必须先将绝对导入转换为相对导入，否则enhance_import_for_py_files一步会改变绝对导入的路径导致出错
     # convert absolute import to relative import if it's an extension
-    if IS_EXTENSION:
+    if is_extension:
         for py_file in search_files(release_folder, {".py"}):
             convert_absolute_to_relative(py_file, release_folder)
 
@@ -264,7 +269,7 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
     if need_zip:
         addon_config_file = os.path.join(_ADDON_ROOT, addon_name, _ADDON_MANIFEST_FILE)
         # package whl files into extension
-        if os.path.exists(addon_config_file) and IS_EXTENSION:
+        if os.path.exists(addon_config_file) and is_extension:
             with open(addon_config_file, 'r', encoding='utf-8') as f:
                 try:
                     addon_config = tomllib.loads(f.read())
@@ -301,7 +306,7 @@ def release_addon(target_init_file, addon_name, with_timestamp=False, release_di
     released_addon_path = os.path.abspath(os.path.join(release_dir, real_addon_name) + ".zip")
     # zip the addon
     if need_zip:
-        zip_folder(release_folder, real_addon_name)
+        zip_folder(release_folder, real_addon_name, is_extension)
         print("Add on released:", released_addon_path)
 
     return released_addon_path
@@ -343,8 +348,8 @@ def remove_empty_folders(root_path):
 
 
 # Zip the folder in a way that blender can recognize it as an addon.
-def zip_folder(target_root, output_zip_file):
-    if IS_EXTENSION:
+def zip_folder(target_root, output_zip_file, is_extension):
+    if is_extension:
         shutil.make_archive(output_zip_file, 'zip', Path(target_root))
     else:
         shutil.make_archive(output_zip_file, 'zip', Path(target_root).parent, base_dir=os.path.basename(target_root))
@@ -676,6 +681,7 @@ def start_watch_for_update(init_file, addon_name, stop_event: threading.Event):
 
 def update_addon_for_test(init_file, addon_name):
     addon_path = release_addon(init_file, addon_name, with_timestamp=False,
+                               is_extension=IS_EXTENSION,
                                release_dir=TEST_RELEASE_DIR, need_zip=False)
     executable_path = os.path.join(os.path.dirname(addon_path), addon_name)
 

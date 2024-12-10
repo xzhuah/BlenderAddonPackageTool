@@ -1,5 +1,5 @@
 from framework import get_init_file_path, release_addon
-from main import ACTIVE_ADDON
+from main import ACTIVE_ADDON, IS_EXTENSION
 
 # 发布前请修改ACTIVE_ADDON参数
 
@@ -12,6 +12,12 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('addon', default=ACTIVE_ADDON, nargs='?', help='addon name')
+    parser.add_argument('--is_extension', default=IS_EXTENSION, action='store_true', help='If true, package the addon '
+                                                                                          'as extension, framework '
+                                                                                          'will convert absolute '
+                                                                                          'import to relative import '
+                                                                                          'for you and will take care '
+                                                                                          'of packaging the extension.')
     parser.add_argument('--disable_zip', default=False, action='store_true', help='If true, release the addon into a '
                                                                                   'plain folder and do not zip it '
                                                                                   'into an installable package, '
@@ -26,6 +32,7 @@ if __name__ == '__main__':
     release_addon(target_init_file=get_init_file_path(args.addon),
                   addon_name=args.addon,
                   need_zip=not args.disable_zip,
+                  is_extension=args.is_extension,
                   with_timestamp=args.with_timestamp,
                   with_version=args.with_version,
                   )
