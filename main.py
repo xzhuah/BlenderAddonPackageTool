@@ -60,7 +60,7 @@ if os.path.isfile(CONFIG_FILEPATH):
         ACTIVE_ADDON = configParser.get('default', 'addon')
 
     if configParser.has_option('default', 'is_extension') and configParser.get('default', 'is_extension'):
-        IS_EXTENSION = configParser.get('default', 'is_extension')
+        IS_EXTENSION = configParser.getboolean('default', 'is_extension')
 
     if configParser.has_option('default', 'release_dir') and configParser.get('default', 'release_dir'):
         DEFAULT_RELEASE_DIR = configParser.get('default', 'release_dir')
