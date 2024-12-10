@@ -33,11 +33,6 @@ _addon_properties = {}
 #     },
 # }
 
-# Best practice: Please do not define Blender classes in the __init__.py file.
-# Define them in separate files and import them here. This is because the __init__.py file would be copied during
-# addon packaging, and defining Blender classes in the __init__.py file may cause unexpected problems.
-# 建议不要在__init__.py文件中定义Blender相关的类。请在单独的文件中定义它们并在此处导入它们。
-# __init__.py文件在代码打包时会被复制，在__init__.py文件中定义Blender相关的类可能会导致意外的问题。
 def register():
     # Register classes
     auto_load.init()
