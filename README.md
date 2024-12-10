@@ -62,9 +62,9 @@ the add-on's package name, ensuring it doesn't conflict with other add-ons.
 
 This project depends on the `addons` folder; do not rename this folder.
 
-Do not define classes in the `__init__.py` file of an add-on. The `__init__.py` file is copied to the root directory of
-the add-on when packaging the framework, which may result in classes being misused. To avoid this
-issue, define classes in other files and import them in the `__init__.py` file as needed.
+When packaging an add-on, the framework will generate a __init__.py file in the add-on directory. By copying bl_info,
+and importing the register and unregister method from your target addon's __init__.py. Usually this won't cause any
+issue, but if you notice anything that might be related to this, please let us know.
 
 ### Notice for extension developers
 
@@ -223,8 +223,9 @@ Blender 版本 >= 2.93
 
 注意项目依赖addons文件夹，请勿更改这个文件夹的名称。
 
-请不要在插件的__init__.py文件中定义类，__init__.py文件在框架打包时会被复制到插件的根目录，可能会导致插件中包含重复的类导致意外情况。
-为避免这个问题，请将插件的类定义到其他文件中，然后在需要时在__init__.py文件中导入这些类。
+在打包插件时，框架会在插件目录下生成一个__init__.py文件，这个__init__.py文件会复制你的插件的__init__.py文件中bl_info,
+并导入register和unregister方法。
+通常这不会引起任何问题，但如果你发现与这个有关的问题，请与我们联系。
 
 ### 扩展插件开发注意事项
 

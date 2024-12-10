@@ -170,10 +170,6 @@ def execute_blender_script(args, addon_path):
             line: str
             if line.lstrip().startswith("File"):
                 line = line.replace(addon_path, PROJECT_ROOT)
-            if _addon_on_init_file in line:
-                addon_name = os.path.basename(addon_path)
-                real_addon_init_file = os.path.abspath(os.path.join(_ADDON_ROOT, addon_name, "__init__.py"))
-                line = line.replace(_addon_on_init_file, real_addon_init_file)
             sys.stderr.write(line)
     except KeyboardInterrupt:
         sys.stderr.write("interrupted, terminating the child process...\n")
@@ -198,11 +194,9 @@ def release_addon(target_init_file, addon_name,
         raise ValueError("InValid addon_name:", addon_name, "Please name it as a python package name")
 
     if is_extension:
-        # 发布为扩展时，请确保您在config.py正确的定义了__addon_name__，并且不要在插件的__init__.py中的register/unregister方法中引用bl_info
-        # print(
-        #     "Release as extension, please make sure you defined __addon_name__ correctly in config.py, and not referring "
-        #     "bl_info in register/unregister method of addon's __init__.py")
-        # make sure toml file exists
+        # 发布为扩展时，请确保您在config.py正确的定义了__addon_name__
+        # Release as extension, please make sure you defined __addon_name__ correctly in config.py"
+        # Make sure toml file exists
         addon_config_file = os.path.join(_ADDON_ROOT, addon_name, _ADDON_MANIFEST_FILE)
         if not os.path.isfile(addon_config_file):
             raise ValueError("Extension config file not found:", addon_config_file)
@@ -215,7 +209,11 @@ def release_addon(target_init_file, addon_name,
     if os.path.exists(release_folder):
         shutil.rmtree(release_folder)
     os.mkdir(release_folder)
-    shutil.copyfile(target_init_file, os.path.join(release_folder, "__init__.py"))
+
+    bootstrap_init_file = generate_bootstrap_init_file(addon_name, get_addon_info(target_init_file))
+    write_utf8(os.path.join(release_folder, "__init__.py"), bootstrap_init_file)
+
+    # shutil.copyfile(target_init_file, os.path.join(release_folder, "__init__.py"))
     # 将target_init_file同级的其他非py文件复制到发布目录 如 toml xml等可能跟插件有关的配置文件
     for file in os.listdir(os.path.dirname(target_init_file)):
         file_path = os.path.join(os.path.dirname(target_init_file), file)
@@ -262,8 +260,8 @@ def release_addon(target_init_file, addon_name,
     enhance_import_for_py_files(release_folder)
 
     # enhance relative import for root __init__.py
-    enhance_relative_import_for_init_py(os.path.join(release_folder, "__init__.py"),
-                                        _ADDONS_FOLDER, addon_name)
+    # enhance_relative_import_for_init_py(os.path.join(release_folder, "__init__.py"),
+    #                                     _ADDONS_FOLDER, addon_name)
 
     # include wheel files when need to be zipped
     if need_zip:
@@ -314,18 +312,38 @@ def release_addon(target_init_file, addon_name,
 
 def get_addon_info(filename: str):
     file_content = read_utf8(filename)
-    # match bl_info content in [addon]/__init__.py
-    bl_info_pattern = r'bl_info\s*=\s*{(.+?)}\s*'
-
-    match = re.search(bl_info_pattern, file_content, re.DOTALL)
-
-    if match:
-        bl_info_content = match.group(1).strip()
-        bl_info_dict = eval('{' + bl_info_content + '}')
-        return bl_info_dict
-    else:
-        print("bl_info not found in the file.")
+    try:
+        parsed_ast = ast.parse(file_content)
+        for node in ast.walk(parsed_ast):
+            if isinstance(node, ast.Assign):
+                for target in node.targets:
+                    if isinstance(target, ast.Name) and target.id == "bl_info":
+                        return ast.literal_eval(node.value)
+    except Exception as e:
         return None
+
+
+def generate_bootstrap_init_file(addon_name: str, bl_info: dict):
+    bootstrap_init_file_template = """from .addons.{addon_name} import register as addon_register, unregister as addon_unregister
+
+bl_info = {bl_info}
+
+def register():
+    addon_register()
+
+def unregister():
+    addon_unregister()
+
+    """
+    bl_info_str = (
+            "{\n"
+            + ",\n".join(
+        f'    "{key}": {repr(value)}'
+        for key, value in bl_info.items()
+    )
+            + "\n}"
+    )
+    return bootstrap_init_file_template.format(addon_name=addon_name, bl_info=bl_info_str)
 
 
 # pyc files are auto generated, need to be removed before release
@@ -502,58 +520,6 @@ def enhance_import_for_py_files(addon_dir: str):
                                           "from " + namespace + "." + original_module_path + " import")
         if hasUpdated:
             write_utf8(py_file, content)
-
-
-# from .abc import xxx -> from .child_path.addon_name.abc import xxx
-def enhance_relative_import_for_init_py(init_py_file_path: str, child_path: str, addon_name: str):
-    lines = read_utf8_in_lines(init_py_file_path)
-    # we moved __init__.py to the parent folder, so we need to enhance the relative import
-    updated_lines = []
-    hasUpdated = False
-    for line in lines:
-        match = _relative_import_pattern.match(line)
-        if match:
-            leading_dots = match.group(2)  # Extract the leading dots
-            rest_of_import = match.group(3).strip()  # Everything after the leading dots
-            remaining_dots_count = len(leading_dots) - 2
-
-            if remaining_dots_count > 0:
-                # Sufficient dots remain; reduce by two
-                updated_dots = '.' * remaining_dots_count
-                updated_line = line.replace(leading_dots, updated_dots, 1)
-            elif remaining_dots_count == -1:
-                # one level up
-                # No dots remain; add a leading dot
-                # 有可能是框架改动将abs import转为rel import之后导致的，必须检查对应文件是否存在 如果存在则不需要修改
-
-                if rest_of_import.startswith("import "):
-                    updated_line = line.replace(leading_dots, f".{child_path}.{addon_name}", 1)
-                else:
-                    rest_of_import = rest_of_import[:rest_of_import.index(" ")]
-                    potential_file = os.path.join(os.path.dirname(init_py_file_path),
-                                                  rest_of_import.replace(".", os.sep) + ".py")
-                    potential_module = os.path.join(os.path.dirname(init_py_file_path),
-                                                    rest_of_import.replace(".", os.sep), "__init__.py")
-                    if os.path.exists(potential_file) or os.path.exists(potential_module):
-                        updated_line = line
-                    else:
-                        updated_line = line.replace(leading_dots, f".{child_path}.{addon_name}.", 1)
-            else:
-                # Short relative imports or no need to reduce the dots
-                if rest_of_import.startswith("import "):
-                    # If rest_of_import starts with 'import', don't add a trailing dot
-                    updated_line = line.replace(leading_dots, f".{child_path}", 1)
-                else:
-                    # For nested imports, add a trailing dot
-                    updated_line = line.replace(leading_dots, f".{child_path}.", 1)
-
-            updated_lines.append(updated_line)
-            hasUpdated = True
-        else:
-            # Keep the line unchanged if no match
-            updated_lines.append(line)
-    if hasUpdated:
-        write_utf8_in_lines(init_py_file_path, updated_lines)
 
 
 def convert_absolute_to_relative(file_path: str, project_root: str):
