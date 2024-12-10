@@ -28,14 +28,14 @@ jobs:
       - name: Run release command for sample_addon
         run: |
           python release.py sample_addon --with_version
-
-      #      - name: Run release command for addon1 as extension
-      #        run: |
-      #          python release.py addon1 --is_extension --with_version
-      #
-      #      - name: Run release command for addon2
-      #        run: |
-      #          python release.py addon2 --is_extension --with_version --with_timestamp
+# Add additional steps for each addon as needed... 安如下格式添加其他插件的发布命令
+#      - name: Run release command for addon1 as extension
+#        run: |
+#          python release.py addon1 --is_extension --with_version
+#
+#      - name: Run release command for addon2
+#        run: |
+#          python release.py addon2 --is_extension --with_version --with_timestamp
 
       # Add additional steps for each addon as needed...
       # You can add more steps as needed for each addon.
