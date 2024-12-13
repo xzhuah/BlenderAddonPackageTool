@@ -1,4 +1,5 @@
 import bpy
+
 from ..config import __addon_name__
 from ..preference.AddonPreferences import ExampleAddonPreferences
 

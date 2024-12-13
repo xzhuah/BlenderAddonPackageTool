@@ -2,6 +2,7 @@ import importlib
 import inspect
 import pkgutil
 import typing
+import sys
 from pathlib import Path
 
 import bpy
@@ -255,3 +256,10 @@ def preprocess_dictionary(dictionary):
             dictionary[key][("Operator", invalid_item)] = translation
             del dictionary[key][invalid_item]
     return dictionary
+
+def remove_addon_cache(addon_module_prefix):
+    all_modules = sys.modules
+    all_modules = dict(sorted(all_modules.items(), key=lambda x: x[0]))
+    for module_name in all_modules:
+        if module_name.startswith(addon_module_prefix):
+            del sys.modules[module_name]
