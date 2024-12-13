@@ -14,6 +14,7 @@ __all__ = (
     "preprocess_dictionary",
     "add_properties",
     "remove_properties",
+    "remove_addon_cache",
 )
 
 from ..types.framework import ExpandableUi, is_extension
