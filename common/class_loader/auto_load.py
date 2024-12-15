@@ -1,8 +1,8 @@
 import importlib
 import inspect
 import pkgutil
-import typing
 import sys
+import typing
 from pathlib import Path
 
 import bpy
@@ -200,12 +200,21 @@ def toposort(deps_dict):
     sorted_values = set()
     while len(deps_dict) > 0:
         unsorted = []
+        # class with no dependencies
+        independent = []
         for value, deps in deps_dict.items():
             if len(deps) == 0:
-                sorted_list.append(value)
-                sorted_values.add(value)
+                independent.append(value)
             else:
                 unsorted.append(value)
+
+        # sort no dependencies by _reg_order
+        independent.sort(key=lambda x: getattr(x, "_reg_order", float('inf')))
+        # add to sorted list
+        for value in independent:
+            sorted_list.append(value)
+            sorted_values.add(value)
+
         deps_dict = {value: deps_dict[value] - sorted_values for value in unsorted}
     return sorted_list
 

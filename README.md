@@ -128,6 +128,9 @@ addon_prefs.some_property
    such as menus, panels, pie menus, and headers. Just inherit from this class and implement the `draw` method. You can
    specify the ID of the native UI component you want to extend using `target_id` and specify whether to append or
    prepend using `expand_mode`.
+1. You can use the `reg_order` decorator in `common/types/framework.py` to specify the order of registration for your
+   classes. This is useful when you need to ensure that certain classes are registered before others. For example the
+   initial order of Panels will be in the order they are registered.
 
 ## Add Optional Configuration File
 
@@ -273,6 +276,8 @@ addon_prefs.some_property
 1. 你可以使用common/types/framework.py中的ExpandableUi类来方便的扩展Blender原生的菜单，面板，饼菜单，标题栏等UI组件,
    只需继承该类并实现draw方法，你可以通过target_id来指定需要扩展的原生UI组件的ID,
    通过expand_mode来指定向前还是向后扩展。
+1. 你可以使用common/types/framework.py中的reg_order装饰器来指定类的注册顺序，当你需要确保某些类在其他类之前注册时，可以利用这个功能。
+   比如Panel的初始顺序将会按照注册的顺序来排列。
 
 ## 添加可选的配置文件
 
