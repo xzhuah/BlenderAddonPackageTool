@@ -146,14 +146,15 @@ Here is an example of a `config.ini` file:
 exe_path = C:/software/general/Blender/Blender3.5/blender.exe
 ; exe_path = C:/software/general/Blender/Blender3.6/blender.exe
 
+; path to the addon directory, testing addon will be temporarily installed here
+; usually you don't need to configure this since it can be derived from the exe_path
+addon_path = C:/software/general/Blender/Blender3.5/scripts/addons/
+
 [default]
 ; name of the addon to be created, tested and released
 addon = sample_addon
 ; Whether the addon is an extension, if True, the addon will be packaged when released.
 is_extension = False
-; path to the addon directory, testing addon will be temporarily installed here
-; usually you don't need to configure this since it can be derived from the exe_path
-addon_path = C:/software/general/Blender/Blender3.5/scripts/addons/
 ; the path to store released addon zip files. Do not release to your source code directory
 release_dir = C:/path/to/release/dir
 ; the path to store addon files used for testing, during testing, the framework will first release the addon to here and copy it to Blender's addon directory. Do not release to your source code directory
@@ -292,14 +293,14 @@ addon_prefs.some_property
 exe_path = C:/software/general/Blender/Blender3.5/blender.exe
 ; exe_path = C:/software/general/Blender/Blender3.6/blender.exe
 
+; 插件目录路径，测试时插件将被临时安装到这里
+; 通常不需要配置此项，因为框架可以通过exe_path的路径推导出来
+addon_path = C:/software/general/Blender/Blender3.5/scripts/addons/
 [default]
 ; 创建、测试和发布的目标插件名称
 addon = sample_addon
 ; 插件是否为扩展，如果为True，则插件在发布时会被打包成扩展的形式
 is_extension = False
-; 插件目录路径，测试时插件将被临时安装到这里
-; 通常不需要配置此项，因为框架可以通过exe_path的路径推导出来
-addon_path = C:/software/general/Blender/Blender3.5/scripts/addons/
 ; 发布插件zip文件的存放路径。注意不要发布到源码所在的目录中
 release_dir = C:/path/to/release/dir
 ; 用于测试时插件文件的临时存放路径，测试是框架首先会发布插件到这里，然后再复制到Blender的插件目录。注意不要发布到源码所在的目录中
