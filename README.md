@@ -56,7 +56,7 @@ manually:
 ## Framework Development Guidelines
 
 Blender Version >= 2.93
-Platform Supported: Windows, Linux
+Platform Supported: Windows, MacOs, Linux
 
 Each add-on, while adhering to the basic structure of a Blender add-on, should include a `config.py` file to configure
 the add-on's package name, ensuring it doesn't conflict with other add-ons.
@@ -225,7 +225,7 @@ test_release_dir = C:/path/to/test/release/dir
 ## 框架开发要求
 
 Blender 版本 >= 2.93
-支持的平台: Windows, Linux
+支持的平台: Windows, MacOs, Linux
 
 每个插件在符合Blender插件的结构基础上，需要有一个config.py文件用于配置插件的包名，避免与其他插件冲突。
 
