@@ -46,7 +46,6 @@ def register():
     for cls in frame_work_classes:
         register_framework_class(cls)
 
-
 def unregister():
     for cls in reversed(ordered_classes):
         bpy.utils.unregister_class(cls)

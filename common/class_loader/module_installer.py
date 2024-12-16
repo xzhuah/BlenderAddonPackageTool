@@ -1,7 +1,7 @@
 import importlib.metadata
 import importlib.util
 import os
-import re
+import platform
 import subprocess
 import sys
 
@@ -30,18 +30,37 @@ def install_if_missing(package):
         install(package)
 
 
+def get_blender_version(blender_exe_path):
+    try:
+        # Run the Blender executable with --version
+        result = subprocess.run(
+            [blender_exe_path, "--version"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        # Check if the process was successful
+        if result.returncode == 0:
+            output = result.stdout
+            # Parse the version from the output
+            for line in output.splitlines():
+                if line.startswith("Blender"):
+                    # Extract version number
+                    return line.split()[1]  # e.g., "3.6.2"
+        else:
+            print("Error running Blender:", result.stderr)
+    except Exception as e:
+        print(f"An error occurred when trying to determine Blender version: {e}")
+    return None
+
+
 def extract_blender_version(blender_exe_path: str):
-    folder_path = os.path.dirname(blender_exe_path)
-    for version in ["4.4", "4.3", "4.2", "4.1", "4.0", "3.6", "3.5", "3.4", "3.3", "3.2", "3.1", "3.0", "2.93"]:
-        if os.path.exists(os.path.join(folder_path, version)):
-            return version
-    pattern = r'\d+\.?\d+'
-    matches = re.findall(pattern, blender_exe_path)
-    for match in matches[::-1]:
-        if os.path.exists(os.path.join(folder_path, match)):
-            return match
-        elif len(match) > 3 and os.path.exists(os.path.join(folder_path, match[:3])):
-            return match[:3]
+    """Extract the first two version numbers from the Blender executable path."""
+    version_str = get_blender_version(blender_exe_path)
+    try:
+        return ".".join(version_str.split(".")[0:2])
+    except Exception as e:
+        print(f"An error occurred when trying to extract Blender version from {version_str}: {e}")
     return None
 
 
@@ -66,12 +85,37 @@ def install_fake_bpy(blender_path: str):
                 install("fake-bpy-module-latest")
 
 
+def normalize_blender_path_by_system(blender_path: str):
+    if is_mac():
+        if blender_path.endswith(".app"):
+            blender_path = os.path.join(blender_path, "Contents/MacOS/blender")
+    return blender_path
+
+
 def default_blender_addon_path(blender_path: str):
-    assert os.path.exists(blender_path) and blender_path.endswith(
-        "blender.exe"), "Invalid blender path: " + blender_path + "! Please provide a valid blender path pointing to the blender.exe."
+    blender_path = normalize_blender_path_by_system(blender_path)
     blender_version = extract_blender_version(blender_path)
-    assert blender_version is not None, "Blender version not found in path: " + blender_path
-    new_path = os.path.join(os.path.dirname(blender_path), blender_version, "scripts", "addons_core")
-    if os.path.exists(new_path):
-        return new_path
-    return os.path.join(os.path.dirname(blender_path), blender_version, "scripts", "addons")
+    assert blender_version is not None, "Can not detect Blender version with " + blender_path + "!"
+    if is_windows() or is_linux():
+        new_path = os.path.join(os.path.dirname(blender_path), blender_version, "scripts", "addons_core")
+        if os.path.exists(new_path):
+            return new_path
+        return os.path.join(os.path.dirname(blender_path), blender_version, "scripts", "addons")
+    elif is_mac():
+        user_path = os.path.expanduser("~")
+        return os.path.join(user_path, f"Library/Application Support/Blender/{blender_version}/scripts/addons")
+    else:
+        raise Exception(
+            "This Framework is currently not compatible with your operating system! Please use Windows, MacOS or Linux.")
+
+
+def is_windows():
+    return platform.system() == "Windows"
+
+
+def is_linux():
+    return platform.system() == "Linux"
+
+
+def is_mac():
+    return platform.system() == "Darwin"
