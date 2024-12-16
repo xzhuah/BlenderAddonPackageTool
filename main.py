@@ -19,7 +19,7 @@ BLENDER_EXE_PATH = "C:/software/general/Blender/blender-3.6.0-windows-x64/blende
 
 # MacOS examplenotice "/Contents/MacOS/Blender" will be appended automatically if you didn't write it explicitly
 # MacOS示例 框架会自动附加"/Contents/MacOS/Blender" 所以您不必写出
-# BLENDER_EXE_PATH = "/Applications/Blender/blender-3.6.0-macOS/blender.app"
+# BLENDER_EXE_PATH = "/Applications/Blender/blender-3.6.0-macOS/Blender.app"
 
 # Are you developing an extension(for Blender4.2) instead of legacy addon?
 # https://docs.blender.org/manual/en/latest/advanced/extensions/addons.html
