@@ -56,6 +56,7 @@ manually:
 ## Framework Development Guidelines
 
 Blender Version >= 2.93
+Platform Supported: Windows, Linux
 
 Each add-on, while adhering to the basic structure of a Blender add-on, should include a `config.py` file to configure
 the add-on's package name, ensuring it doesn't conflict with other add-ons.
@@ -164,7 +165,9 @@ test_release_dir = C:/path/to/test/release/dir
 ## Contributions
 
 1. Framework Updates: If you are using this framework in your project and need to migrate to a newer version, you will
-   need to manually replace the framework files to get the new features. We are looking for more user-friendly migration
+   need to manually replace the framework files to get the new features. You may fork this project and use
+   `git fetch upstream` to update.
+   We are looking for more user-friendly migration
    experience. In general, we aim to keep the framework lightweight and avoid making structural changes. Most future
    updates are expected to just adding new features rather than making major changes to the framework structure. So
    unless you personally made changes to the framework code locally, you will only need to replace the old files with
@@ -222,6 +225,7 @@ test_release_dir = C:/path/to/test/release/dir
 ## 框架开发要求
 
 Blender 版本 >= 2.93
+支持的平台: Windows, Linux
 
 每个插件在符合Blender插件的结构基础上，需要有一个config.py文件用于配置插件的包名，避免与其他插件冲突。
 
@@ -309,7 +313,8 @@ test_release_dir = C:/path/to/test/release/dir
 
 ## 框架在以下方面可进一步完善，欢迎贡献意见和代码
 
-1. 框架的更新：如果你已经在项目中使用了这个框架进行开发，当你需要迁移到更新的框架版本时，你需要手动替换框架代码文件来获取新的功能，
+1. 框架的更新：如果你已经在项目中使用了这个框架进行开发，当你需要迁移到更新的框架版本时，你需要手动替换框架代码文件来获取新的功能，你可以fork这个项目，然后使用
+   `git fetch upstream`来拉取最新的代码。
    我们希望探索一些更友好的方式来帮助更新框架代码，欢迎提供意见。但总的来说，我们希望框架保持轻量，不会在结构上有太大的变化。
    可以预计未来的大部分更新都是在增加新的功能，而不是对框架结构进行大的调整。除非你在本地对框架代码有所改动，未来的更新你只需要将新的文件替换旧的文件即可。
 1. 断点调试：目前框架并不支持IDE内的断点调试，实现这个功能需要对框架代码进行一些修改，这也许会增加框架的使用难度，我们力求寻找尽量轻量级的解决方案。但总的来说，
