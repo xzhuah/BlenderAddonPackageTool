@@ -14,6 +14,13 @@ ACTIVE_ADDON = "sample_addon"
 # Blender可执行文件的路径，Blender2.93是所需的最低版本
 BLENDER_EXE_PATH = "C:/software/general/Blender/blender-3.6.0-windows-x64/blender.exe"
 
+# Linux example Linux示例
+# BLENDER_EXE_PATH = "/usr/local/blender/blender-3.6.0-linux-x64/blender"
+
+# MacOS examplenotice "/Contents/MacOS/blender" will be appended automatically if you didn't write it explicitly
+# MacOS示例 框架会自动附加"/Contents/MacOS/blender" 所以您不必写出
+# BLENDER_EXE_PATH = "/Applications/Blender/blender-3.6.0-macOS/blender.app"
+
 # Are you developing an extension(for Blender4.2) instead of legacy addon?
 # https://docs.blender.org/manual/en/latest/advanced/extensions/addons.html
 # The framework will convert absolute import to relative import when packaging the extension.
