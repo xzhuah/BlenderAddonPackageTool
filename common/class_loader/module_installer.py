@@ -88,7 +88,7 @@ def install_fake_bpy(blender_path: str):
 def normalize_blender_path_by_system(blender_path: str):
     if is_mac():
         if blender_path.endswith(".app"):
-            blender_path = os.path.join(blender_path, "Contents/MacOS/blender")
+            blender_path = os.path.join(blender_path, "Contents/MacOS/Blender")
     return blender_path
 
 
