@@ -1,3 +1,6 @@
+# Notice: Please do not use functions in this file for developing your Blender Addons, this file is for internal use of
+# the framework, it contains some modules that Blender officially prohibits using in Addons. Such as sys
+# 注意：请不要在Blender中使用此文件中的函数,此文件用于框架内部使用,包含了一些Blender官方禁止在插件中使用的模块 如sys
 import importlib.metadata
 import importlib.util
 import os
