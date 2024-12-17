@@ -34,7 +34,7 @@ IS_EXTENSION = False
 # 您可以通过手动设置路径来覆盖默认插件安装路径 或者在config.ini中设置
 # BLENDER_ADDON_PATH = "C:/software/general/Blender/Blender3.5/3.5/scripts/addons/"
 BLENDER_ADDON_PATH = None
-if os.path.exists(BLENDER_EXE_PATH) and BLENDER_ADDON_PATH is None:
+if os.path.exists(BLENDER_EXE_PATH):
     BLENDER_ADDON_PATH = default_blender_addon_path(BLENDER_EXE_PATH)
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -58,8 +58,7 @@ if os.path.isfile(CONFIG_FILEPATH):
         BLENDER_EXE_PATH = configParser.get('blender', 'exe_path')
         # The path of the blender addon folder
         # 同时更改Blender插件文件夹的路径
-        if BLENDER_ADDON_PATH is None:
-            BLENDER_ADDON_PATH = default_blender_addon_path(BLENDER_EXE_PATH)
+        BLENDER_ADDON_PATH = default_blender_addon_path(BLENDER_EXE_PATH)
 
     if configParser.has_option('blender', 'addon_path') and configParser.get('blender', 'addon_path'):
         BLENDER_ADDON_PATH = configParser.get('blender', 'addon_path')
@@ -77,6 +76,10 @@ if os.path.isfile(CONFIG_FILEPATH):
         TEST_RELEASE_DIR = configParser.get('default', 'test_release_dir')
 
 BLENDER_EXE_PATH = normalize_blender_path_by_system(BLENDER_EXE_PATH)
+
+# If you want to override theBLENDER_ADDON_PATH(the path to install addon during testing), uncomment the following line and set the path manually.
+# 如果要覆盖BLENDER_ADDON_PATH(测试插件安装路径)，请取消下一行的注释并手动设置路径
+# BLENDER_ADDON_PATH = ""
 
 # Could not find the blender addon path, raise error. Please set BLENDER_ADDON_PATH manually.
 # 未找到Blender插件路径，引发错误 请手动设置BLENDER_ADDON_PATH
