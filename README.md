@@ -114,8 +114,9 @@ addon_prefs.some_property
 ## Features Provided by the Framework
 
 1. You don't need to worry about register and unregister classes in Blender add-ons. The framework automatically loads
-   and
-   unloads classes in your add-ons. You just need to define your classes in the addon's folder.
+   and unloads classes in your add-ons. You just need to define your classes in the addon's folder. Note that the
+   classes that are automatically loaded need to be placed in a directory with an `__init__.py` file to be recognized
+   and loaded by the framework's auto load mechanism.
 1. You can use internationalization in your add-ons. Just add translations in the standard format to the `dictionary.py`
    file in the `i18n` folder of your add-on.
 1. You can define RNA properties declaratively. Just follow the examples in the `__init__.py` file to add your RNA
@@ -275,7 +276,8 @@ addon_prefs.some_property
 
 ## 框架提供的功能
 
-1. 你基本上无需关心Blender插件的类的加载和卸载，框架会自动加载和卸载你的插件中的类
+1. 你基本上无需关心Blender插件的类的加载和卸载，框架会自动加载和卸载你的插件中的类，你只需要在插件目录下定义你的类即可，注意自动加载的类需要放在有__init__
+.py文件的目录下才能被框架自动类加载机制识别并加载
 1. 你可以在插件中使用国际化翻译，只需要在插件文件夹中的i18n中的dictionary.py文件中按标准格式添加翻译即可
 1. 你可以使用声明式的方式定义RNA属性，只需要根据__init__.py中的注释示例添加你的RNA属性即可，框架会自动注册和卸载你的RNA属性
 1. 你可以使用common/types/framework.py中的ExpandableUi类来方便的扩展Blender原生的菜单，面板，饼菜单，标题栏等UI组件,
