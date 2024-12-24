@@ -31,7 +31,10 @@ features include:
 1. Support extension development in Blender 4.2 and later versions. You can choose to package your addon
    as a legacy addon or as an extension by setting the IS_EXTENSION configuration
 
-You can check out an overview about this framework on YouTube: https://youtu.be/udPBrXJZT1g
+You can check out an overview about this framework on YouTube:
+
+- https://www.youtube.com/watch?v=eRSXO_WkY0s
+- https://youtu.be/udPBrXJZT1g
 
 The following external library will be installed automatically when you run the framework code, you can also install
 them
@@ -276,7 +279,8 @@ addon_prefs.some_property
 
 ## 框架提供的功能
 
-1. 你基本上无需关心Blender插件的类的加载和卸载，框架会自动加载和卸载你的插件中的类，你只需要在插件目录下定义你的类即可，注意自动加载的类需要放在有__init__
+1.
+你基本上无需关心Blender插件的类的加载和卸载，框架会自动加载和卸载你的插件中的类，你只需要在插件目录下定义你的类即可，注意自动加载的类需要放在有__init__
 .py文件的目录下才能被框架自动类加载机制识别并加载
 1. 你可以在插件中使用国际化翻译，只需要在插件文件夹中的i18n中的dictionary.py文件中按标准格式添加翻译即可
 1. 你可以使用声明式的方式定义RNA属性，只需要根据__init__.py中的注释示例添加你的RNA属性即可，框架会自动注册和卸载你的RNA属性
